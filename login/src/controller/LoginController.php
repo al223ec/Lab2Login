@@ -9,10 +9,12 @@ require_once("./src/model/DAL/LoginDAL.php");
 		private $loginView; 
 		private $model; 
 		private $DAL; 
+		private $errorMessages; 
 
 		public function __construct(){
+			$this->errorMessages = array();
 			$this->DAL = new \DAL\LoginDAL(); 
-			$this->loginView = new \view\LoginView($this->DAL); 
+			$this->loginView = new \view\LoginView($this->DAL, $this->errorMessages); 
 
 			//$this->DAL->getUsers();
 			$this->DAL->getUser("Admin");
@@ -23,15 +25,11 @@ require_once("./src/model/DAL/LoginDAL.php");
 		}
 
 		public function getLoginForm(){
-
 			if($this->loginView->userIsLoggingIn()){
-				$this->DAL->checkUserName($this->loginView->getUserName()); 
-
-				if ($this->loginView->loginSuccessFull()) {
-				 	# code...
-				 }else{
-
-				 }
+				if($this->DAL->checkUserName($this->loginView->getUserName()) && $this->DAL->checkPassword($this->loginView->getPassword())){
+					//loginsuccessfull
+				} 
+				$this->DAL->checkPassword($this->loginView->getPassword());
 			}
 			return $this->loginView->getLoginForm();
 		}

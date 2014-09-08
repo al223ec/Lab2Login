@@ -10,18 +10,19 @@ class LoginView{
 	private static $AutoLogin = "LoginView::AutoLogin"; 
 
 	private $isLogginIn = "login";
-	private $errorMessages = array();
+	private $errorMessages;
 
 	private $loginDAL; 
 
-	public function __construct($loginDAL) {
+	public function __construct($loginDAL, $errorMessages) {
 		$this->loginDAL = $loginDAL; 
+		$this->errorMessages = $errorMessages; 
 	}
 
 	public function userIsLoggingIn(){
 		return isset($_GET[$this->isLogginIn]) ? true : false;
 	}
-
+/*
 	public function loginSuccessFull(){
 		return $this->loginDAL->checkCredentials($this->getUserName(), $this->getPassword()); 
 	}
@@ -32,7 +33,7 @@ class LoginView{
 			return; 
 		}
 	}
-
+*/
 	public function getLoginForm(){
  		return "
 		    <h1>Laborationskod xx222aa</h1><h2>Ej Inloggad</h2>				  	
@@ -61,9 +62,10 @@ class LoginView{
 		$ret = $this->getCleanInput(self::$UserName);
 		if($ret === ""){
 			$this->errorMessages["UserNameError"] = "Användarnamnet saknas";
-		} else if (!$this->loginDAL->ceckIfUserNameExists($ret)) {
+		} 
+		/*else if (!$this->loginDAL->ceckIfUserNameExists($ret)) {
 			$this->errorMessages["UserNameError"] = "Felaktigt användarnamn";
-		}
+		}*/
 		return $ret; 
 	}
 
@@ -71,9 +73,10 @@ class LoginView{
 		$ret = $this->getCleanInput(self::$Password);
 		if($ret === ""){
 			$this->errorMessages["PasswordError"] = "Lösenordet saknas";
-		} else if($this->loginDAL->passwordIsNotCorrect()){
+		} 
+		/*else if($this->loginDAL->passwordIsNotCorrect()){
 			$this->errorMessages["PasswordError"] = "Fel lösenord";
-		}
+		}*/
 		return $ret; 
 	}
 

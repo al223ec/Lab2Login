@@ -1,7 +1,7 @@
 <?php 
 
 	namespace DAL; 
-	require_once("../User.php"); 
+	//require_once("../User.php"); 
 
 	class LoginDAL {
 
