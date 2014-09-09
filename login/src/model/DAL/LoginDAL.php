@@ -1,7 +1,8 @@
 <?php 
 
 	namespace DAL; 
-	//require_once("../User.php"); 
+	
+	require_once(ROOT_DIR . "/src/model/User.php"); 
 
 	class LoginDAL {
 
@@ -17,12 +18,12 @@
 		}
     	/**
 	    * @param String userName
-	    * @return Null or an object 
-	    * @throws Exception if something goes wrong with SQL or no input
+	    * @return Null eller ett user object 
+	    * @throws Exception om något går fel med SQL eller ingen input
 	    */
-    	public function getUser($userName){
-    		if(!$userName)
-    			throw new \Exception("Error no userName provided");
+    	public function getUserByUserName($userName){
+    		//if(!$userName)
+    		//	throw new \Exception("Error no userName provided");
     			
     		$ret = null; 
     		//http://stackoverflow.com/questions/60174/how-can-i-prevent-sql-injection-in-php
@@ -39,27 +40,11 @@
 	            throw new \Exception("execute of $sql failed " . $statement->error);
 	        }
 	 
-	        $ret = $statement->get_result()->fetch_object();	 
-	        //var_dump($ret); 
+	        if($result = $statement->get_result()->fetch_object()){	
+	        	$ret = new \model\User($result->PK, $result->UserName, $result->Password);
+	    	}
 	        return $ret;
     	}	
-    	public function checkUserName($userName){
-    		if($userName == ""){
-
-    		}
-    	}
-    	public function checkPassword($password){
-
-    	}
-
-    	public function checkCredentials($userName, $password){
-    	}
-    	public function passwordIsNotCorrect(){
-    		return false; 
-    	}
-    	public function ceckIfUserNameExists(){
-    		return true; 
-    	}
 
 		//private static $staticMysqli; 
 		//public static function __construct(){

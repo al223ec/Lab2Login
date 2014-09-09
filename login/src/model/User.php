@@ -11,6 +11,13 @@ class User{
 		$this->key = $key; 
 		$this->userName = $userName;
 		$this->password = $password;  
+
+	}
+	public function authenticate($password){
+		return trim($password) === $this->password; 		
 	}
 
+	public function getUserName(){
+		return $this->userName; 
+	}
 }

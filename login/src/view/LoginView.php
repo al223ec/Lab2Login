@@ -4,64 +4,98 @@ namespace view;
 
 class LoginView{
  
- 	//Kanske bör förändra dessa till
+ 	//Kanske bör förändra dessa till ej statiska
  	private static $UserName =  "LoginView::UserName";  
 	private static $Password =  "LoginView::Password"; 
 	private static $AutoLogin = "LoginView::AutoLogin"; 
 
+	private static $cookieName = "LoginView::IsLoggedIn"; 
+	private static $sessionName = "LoginView::IsLoggedIn"; 
+
+	const PasswordError = "PasswordError"; 
+	const UserNameError = "UserNameError"; 
+
 	private $isLogginIn = "login";
+	private $isLogginOut = "logout";
 	private $errorMessages;
 
 	private $loginDAL; 
 
-	public function __construct($loginDAL, $errorMessages) {
+	public function __construct($loginDAL) {
 		$this->loginDAL = $loginDAL; 
-		$this->errorMessages = $errorMessages; 
+		$this->errorMessages = array(); 
+	}
+	public function userIsLoggedIn(){
+		return isset($_SESSION[self::$sessionName]); 
 	}
 
 	public function userIsLoggingIn(){
-		return isset($_GET[$this->isLogginIn]) ? true : false;
+		return isset($_GET[$this->isLogginIn]);
 	}
-/*
-	public function loginSuccessFull(){
-		return $this->loginDAL->checkCredentials($this->getUserName(), $this->getPassword()); 
+	
+	public function userIsLoggingOut(){
+		return isset($_GET[$this->isLogginOut]);
 	}
-	public function checkCredentials(){
-		$un = getUserName();
-		$pw = getPassword(); 
-		if(!$un || !$pw){
-			return; 
-		}
-	}
-*/
+	/*
+	* 
+	*/
 	public function getLoginForm(){
- 		return "
-		    <h1>Laborationskod xx222aa</h1><h2>Ej Inloggad</h2>				  	
-			<form action='?login' method='post' enctype='multipart/form-data'>
+ 		return 
+ 			$this->getHeader("Ej Inloggad") . "		  	
+			<form action='?a=login' method='post' enctype='multipart/form-data'>
 				<fieldset>
 					<legend>Login - Skriv in användarnamn och lösenord</legend>
 					<label for='UserNameID' >Användarnamn :</label>
 					<input type='text' size='20' name='" . self::$UserName ."' id='UserNameID' value='' />" 
-					. $this->getErrorMessages("UserNameError") .
+					. $this->getErrorMessages(self::UserNameError) .
 
 					"<label for='PasswordID' >Lösenord  :</label>
 					<input type='password' size='20' name='" . self::$Password ."' id='PasswordID' value='' />" 
-					. $this->getErrorMessages("PasswordError") . 
+					. $this->getErrorMessages(self::PasswordError) . 
 
 					"<label for='AutologinID' >Håll mig inloggad  :</label>
 					<input type='checkbox' name='" . self::$AutoLogin ."' id='AutologinID' />
 					<input type='submit' name=''  value='Logga in' />
 				</fieldset>
-			</form>
-			<p> ". (new \DateTime())->format('Y-m-d H:i:sP') . "</p>"; 
+			</form>"
+			 . $this->getFooter(); 
 	}
+
+	public function logingSuccessFull($user){	
+		return $this->getHeader($user->getUserName() . " Är inloggad") .
+				"<a href='?a=".$this->isLogginOut ."'>Logga ut</a>";
+	}
+
+	public function loggedIn(){
+		return $this->getHeader("Du Är inloggad") .
+		"<a href='?a=".$this->isLogginOut ."'>Logga ut</a>";
+	}
+
+	public function saveUserLoggedInSession(){
+		$_SESSION[self::$sessionName] = true;
+		header("Location: " . $_SERVER["PHP_SELF"]); 
+	}
+	public function logout(){
+		if(isset($_SESSION[self::$sessionName]))
+  			unset($_SESSION[self::$sessionName]);
+
+  		session_destroy();
+	}
+
+	private function getHeader($prompt){
+ 		return "<h1>Laborationskod xx222aa</h1><h2>$prompt</h2>"; 		
+	}
+	private function getFooter(){
+		return "<p> ". (new \DateTime())->format('Y-m-d H:i:sP') . "</p>"; 
+	}
+
 
 	//Use $this to refer to the current object. Use self to refer to the current class. 
 	//In other words, use $this->member for non-static members, use self::$member for static members.
 	public function getUserName(){
 		$ret = $this->getCleanInput(self::$UserName);
 		if($ret === ""){
-			$this->errorMessages["UserNameError"] = "Användarnamnet saknas";
+			$this->errorMessages[self::UserNameError] = "Användarnamnet saknas";
 		} 
 		/*else if (!$this->loginDAL->ceckIfUserNameExists($ret)) {
 			$this->errorMessages["UserNameError"] = "Felaktigt användarnamn";
@@ -72,7 +106,7 @@ class LoginView{
 	public function getPassword(){
 		$ret = $this->getCleanInput(self::$Password);
 		if($ret === ""){
-			$this->errorMessages["PasswordError"] = "Lösenordet saknas";
+			$this->errorMessages[self::PasswordError] = "Lösenordet saknas";
 		} 
 		/*else if($this->loginDAL->passwordIsNotCorrect()){
 			$this->errorMessages["PasswordError"] = "Fel lösenord";
@@ -80,7 +114,13 @@ class LoginView{
 		return $ret; 
 	}
 
-
+	public function addErrorMessage($key, $errorMessage){
+		if($key === self::PasswordError || $key === self::UserNameError){
+			$this->errorMessages[$key] = $errorMessage; 
+		} else { 
+			throw new \Exception("LoginView::addErrorMessage fel nyckel skickad till funktionen!!");
+		}
+	}
 	/**
     * @param String input
     * @return String input - tags - trim
