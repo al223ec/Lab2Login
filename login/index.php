@@ -10,6 +10,6 @@ require_once("config.php");
 
 $view = new HTMLView();
 $lc = new \controller\LoginController(); 
-$HTMLBody = $lc->getLoginForm(); 
 
+$HTMLBody = $lc->performAction();
 $view->echoHTML($HTMLBody);

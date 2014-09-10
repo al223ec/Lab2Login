@@ -1,5 +1,5 @@
 <?php
-//DBPassword un: LoginUser
+
 namespace view; 
 
 class LoginView{
@@ -12,12 +12,15 @@ class LoginView{
 	private static $cookieName = "LoginView::IsLoggedIn"; 
 	private static $sessionName = "LoginView::IsLoggedIn"; 
 
+	private $errorMessages;
+	//erromessage nycklar
 	const PasswordError = "PasswordError"; 
 	const UserNameError = "UserNameError"; 
 
-	private $isLogginIn = "login";
-	private $isLogginOut = "logout";
-	private $errorMessages;
+	//Actions
+	const ActionLoggingIn = "login"; 
+	const ActionLoggingOut = "logout";  
+
 
 	private $loginDAL; 
 
@@ -26,25 +29,25 @@ class LoginView{
 		$this->errorMessages = array(); 
 	}
 	public function userIsLoggedIn(){
+//		isset($_SESSION[self::$sessionName]) ? var_dump($_SESSION[self::$sessionName]) : ''; 
 		return isset($_SESSION[self::$sessionName]); 
 	}
 
 	public function userIsLoggingIn(){
-		return isset($_GET[$this->isLogginIn]);
+		return isset($_GET[self::ActionLoggingIn]);
 	}
 	
 	public function userIsLoggingOut(){
-		return isset($_GET[$this->isLogginOut]);
+		return isset($_GET[self::ActionLoggingOut]);
 	}
-	/*
-	* 
-	*/
-	public function getLoginForm(){
+
+	public function renderLoginForm($prompt = ""){
  		return 
  			$this->getHeader("Ej Inloggad") . "		  	
-			<form action='?a=login' method='post' enctype='multipart/form-data'>
+			<form action='?a=". self::ActionLoggingIn ."' method='post' enctype='multipart/form-data'>
 				<fieldset>
 					<legend>Login - Skriv in användarnamn och lösenord</legend>
+					$prompt
 					<label for='UserNameID' >Användarnamn :</label>
 					<input type='text' size='20' name='" . self::$UserName ."' id='UserNameID' value='' />" 
 					. $this->getErrorMessages(self::UserNameError) .
@@ -61,26 +64,22 @@ class LoginView{
 			 . $this->getFooter(); 
 	}
 
-	public function logingSuccessFull($user){	
-		return $this->getHeader($user->getUserName() . " Är inloggad") .
-				"<a href='?a=".$this->isLogginOut ."'>Logga ut</a>";
-	}
-
 	public function loggedIn(){
-		return $this->getHeader("Du Är inloggad") .
-		"<a href='?a=".$this->isLogginOut ."'>Logga ut</a>";
+		return $this->getHeader("Du Är inloggad") . "<a href='?a=". self::ActionLoggingOut ."'>Logga ut</a>" . $this->getFooter();
 	}
 
 	public function saveUserLoggedInSession(){
-		$_SESSION[self::$sessionName] = true;
+		$_SESSION[self::$sessionName] = $this->loginDAL->getCurrentUser();
 		header("Location: " . $_SERVER["PHP_SELF"]); 
 	}
 	public function logout(){
-		if(isset($_SESSION[self::$sessionName]))
+		if(isset($_SESSION[self::$sessionName])){
   			unset($_SESSION[self::$sessionName]);
-
-  		session_destroy();
-	}
+  			session_destroy(); //Bara för att, antar jag. 
+  			return $this->renderLoginForm("<p>Du har nu loggat ut!</p>"); 
+		}
+  		return $this->renderLoginForm(); 
+	}	
 
 	private function getHeader($prompt){
  		return "<h1>Laborationskod xx222aa</h1><h2>$prompt</h2>"; 		
@@ -97,9 +96,6 @@ class LoginView{
 		if($ret === ""){
 			$this->errorMessages[self::UserNameError] = "Användarnamnet saknas";
 		} 
-		/*else if (!$this->loginDAL->ceckIfUserNameExists($ret)) {
-			$this->errorMessages["UserNameError"] = "Felaktigt användarnamn";
-		}*/
 		return $ret; 
 	}
 
@@ -107,10 +103,7 @@ class LoginView{
 		$ret = $this->getCleanInput(self::$Password);
 		if($ret === ""){
 			$this->errorMessages[self::PasswordError] = "Lösenordet saknas";
-		} 
-		/*else if($this->loginDAL->passwordIsNotCorrect()){
-			$this->errorMessages["PasswordError"] = "Fel lösenord";
-		}*/
+		}
 		return $ret; 
 	}
 

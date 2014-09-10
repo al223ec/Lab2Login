@@ -14,25 +14,22 @@ require_once("./src/model/DAL/LoginDAL.php");
 			$this->loginView = new \view\LoginView($this->DAL);
 		}
 		/*
-		*
+		* Kontrollerar vilken action som ska genomföras
 		*/
-		public function getLoginForm(){		
-			
+		public function performAction(){			
 			$strAction = isset($_GET['a']) ? $_GET['a'] : "";
+
 			switch($strAction){
-				case 'login':
+				case \view\LoginView::ActionLoggingIn :
 					return $this->login();
-					break;
-				case 'logout':
+				case \view\LoginView::ActionLoggingOut :
 					return $this->logout();
-					break;
 			}
 
 			if($this->loginView->userIsLoggedIn()){
 				return $this->loginView->loggedIn();
-			}else{
-				return $this->renderForm();	
 			}
+			return $this->renderLoginForm();	
 		}
 
 		private function login(){
@@ -40,11 +37,10 @@ require_once("./src/model/DAL/LoginDAL.php");
 			$pw = $this->loginView->getPassword();
 
 			if($un){
-				$user = $this->DAL->getUserByUserName($un);
-				var_dump($user);
+				$user = $this->DAL->getUser($un, $pw); 
 				if($user != null){ 
 					//korrekt username
-					if($user->authenticate($pw)){
+					if($user->isValid()){
 						//korrekt usernamn och pass
 						$this->loginView->saveUserLoggedInSession();
 						return "Logging in ";
@@ -56,14 +52,14 @@ require_once("./src/model/DAL/LoginDAL.php");
 					$this->loginView->addErrorMessage(\view\LoginView::UserNameError, "Felaktigt användarnamn"); 		
 				}
 			}
-			return $this->renderForm();  
+			return $this->renderLoginForm();  
 		} 
 
 		private function logout(){
-			$this->loginView->logout(); 
-			return "logged out"; 
+			return $this->loginView->logout();
 		}
-		private function renderForm(){
-			return $this->loginView->getLoginForm();
+
+		private function renderLoginForm(){
+			return $this->loginView->renderLoginForm();
 		}
 	}
