@@ -42,21 +42,23 @@
 	        }
 	 
 	        if($result = $statement->get_result()->fetch_object()){	
-	        	$ret = new \model\User($result->UserID, $result->UserName, $result->Password, $result->Hash);
+	        	$ret = new \model\User($result->UserID, $result->UserName, $result->Hash);
 	    	}
 	        return $ret;
     	}	
     	/**
-    	*
+    	*Använder getUserByUserName
+		* @return Null eller ett user object 
     	*/
     	public function getUser($userName, $password){
       		$user = $this->getUserByUserName($userName); 
 			if ($user != null){
 				$user->validate($password);
 
-        		if($user->isValid())
+        		if($user->isValid()){
         			$this->currentUser = $user; 
-    		}
+        		}
+        	}
     		return $user; 
     	}
 
@@ -64,9 +66,9 @@
     		return $this->currentUser; //Privacy??
     	}
 
-    	public function saveAdminUser(){
-    		$userName = 'Admin';
-			$password = 'pas';
+    	public function saveNewUser($userName, $password){
+    		$userName = $this->sanitize($userName); //Ganska onödigt egentligen kommer ej implementera att lägga till användare
+    		$password = $this->sanitize($password);
 
 			// A higher "cost" is more secure but consumes more processing power
 			$cost = 10;
@@ -86,13 +88,13 @@
 			    printf("Connect failed: %s\n", mysqli_connect_error());
 			    exit();
 			}	
-			$sql = "INSERT INTO users(UserName, Password, Hash) VALUES ( ?, ?, ?)";
+			$sql = "INSERT INTO users(UserName, Hash) VALUES ( ?, ?)";
 			$statement = $this->mysqli->prepare($sql);
 
 	        if ($statement === FALSE) {
 	            throw new \Exception("prepare of $sql failed " . $this->mysqli->error);
 	        }	
-			$statement->bind_param("sss", $userName, $password, $hash); 
+			$statement->bind_param("ss", $userName, $hash); 
 
 	        //http://www.php.net/manual/en/mysqli-stmt.execute.php
 	        if ($statement->execute() === FALSE) {
@@ -100,4 +102,34 @@
 	        }
 	        return true;//Allt har gått väl
     	}
+
+    	/**
+	    * @param String input
+	    * @return String input - tags - trim
+	    */
+	    private function sanitize($input) {
+	        $temp = trim($input);
+	        return filter_var($temp, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW);
+	    }
+
+	    public function saveCookieValue ($userID, $cookieValue){
+
+			$sql = "UPDATE " . self::TBL_NAME . " SET CookieValue = ? WHERE UserID = ?";
+			$statement = $this->mysqli->prepare($sql);
+
+	        if ($statement === FALSE) {
+	            throw new \Exception("prepare of $sql failed " . $this->mysqli->error);
+	        }	
+			$statement->bind_param("ss", $cookieValue, $userID); 
+
+	        //http://www.php.net/manual/en/mysqli-stmt.execute.php
+	        if ($statement->execute() === FALSE) {
+	            throw new \Exception("execute of $sql failed " . $statement->error);
+	        }
+	 
+	        return true; 
+	    }
+
+	    private function performSQL($sql, array $params){
+	    }
 }

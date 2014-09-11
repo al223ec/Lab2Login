@@ -2,6 +2,8 @@
 
 namespace view; 
 
+require_once(ROOT_DIR . "/src/view/CookieHandler.php"); 
+
 class LoginView{
  
  	//Kanske bör förändra dessa till ej statiska
@@ -23,13 +25,14 @@ class LoginView{
 
 
 	private $loginDAL; 
+	private $cookieHandler; 
 
 	public function __construct($loginDAL) {
 		$this->loginDAL = $loginDAL; 
 		$this->errorMessages = array(); 
+		$this->cookieHandler = new CookieHandler(); 
 	}
 	public function userIsLoggedIn(){
-//		isset($_SESSION[self::$sessionName]) ? var_dump($_SESSION[self::$sessionName]) : ''; 
 		return isset($_SESSION[self::$sessionName]); 
 	}
 
@@ -64,8 +67,10 @@ class LoginView{
 			 . $this->getFooter(); 
 	}
 
-	public function loggedIn(){
-		return $this->getHeader("Du Är inloggad") . "<a href='?a=". self::ActionLoggingOut ."'>Logga ut</a>" . $this->getFooter();
+	public function loggedInView(){
+		$userName = isset($_SESSION[self::$sessionName]) ? $_SESSION[self::$sessionName]->getUserName() : ''; 
+		//var_dump($_SESSION[self::$sessionName]);
+		return $this->getHeader("$userName är inloggad") . "<a href='?a=". self::ActionLoggingOut ."'>Logga ut</a>" . $this->getFooter();
 	}
 
 	public function saveUserLoggedInSession(){
@@ -75,7 +80,7 @@ class LoginView{
 	public function logout(){
 		if(isset($_SESSION[self::$sessionName])){
   			unset($_SESSION[self::$sessionName]);
-  			session_destroy(); //Bara för att, antar jag. 
+  			//session_destroy(); 
   			return $this->renderLoginForm("<p>Du har nu loggat ut!</p>"); 
 		}
   		return $this->renderLoginForm(); 
@@ -85,7 +90,8 @@ class LoginView{
  		return "<h1>Laborationskod xx222aa</h1><h2>$prompt</h2>"; 		
 	}
 	private function getFooter(){
-		return "<p> ". (new \DateTime())->format('Y-m-d H:i:sP') . "</p>"; 
+		 //(new \DateTime())->format('l Y-m-d H:i:sP')
+		return "<p> ". strftime("%A") . " Den " .  strftime("%d %B") . " " . " år " . strftime("%Y") .  ". Klockan är [" . strftime("%H:%M:%S") ."]</p>"; 
 	}
 
 

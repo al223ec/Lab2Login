@@ -1,8 +1,8 @@
 <?php 
 namespace controller; 
 
-require_once("./src/view/LoginView.php"); 
-require_once("./src/model/DAL/LoginDAL.php"); 
+require_once(ROOT_DIR . "/src/view/LoginView.php"); 
+require_once(ROOT_DIR . "/src/model/DAL/LoginDAL.php"); 
 
 	class LoginController {
 		private $loginView; 
@@ -11,7 +11,6 @@ require_once("./src/model/DAL/LoginDAL.php");
 
 		public function __construct(){
 			$this->DAL = new \DAL\LoginDAL();
-			//$this->DAL->getUserWithEncryption();
 			$this->loginView = new \view\LoginView($this->DAL);
 		}
 		/*
@@ -28,7 +27,7 @@ require_once("./src/model/DAL/LoginDAL.php");
 			}
 
 			if($this->loginView->userIsLoggedIn()){
-				return $this->loginView->loggedIn();
+				return $this->loginView->loggedInView();
 			}
 			return $this->renderLoginForm();	
 		}

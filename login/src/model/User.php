@@ -3,19 +3,20 @@
 namespace model; 
 
 class User{
-	private $key; 
-	private $userName; 
-	private $password; 
-	private $valid; 
 
-	public function __construct($key, $userName, $password){
-		$this->key = $key; 
+	private $userID; 
+	private $userName; 
+	private $valid; 
+	private $hash;
+
+	public function __construct($userID, $userName, $hash){
+		$this->userID = $userID; 
 		$this->userName = $userName;
-		$this->password = $password;  
+		$this->hash = $hash; 
 	}
 
 	public function validate($password){
-		return $this->valid = trim($password) === $this->password; 		
+		return $this->valid = crypt($password, $this->hash) === $this->hash; 
 	}
 	public function isValid(){
 		return $this->valid; 
