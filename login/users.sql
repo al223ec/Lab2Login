@@ -25,7 +25,7 @@ SET time_zone = "+00:00";
 --
 -- Tabellstruktur `users`
 --
-
+-- use databaseName
 CREATE TABLE IF NOT EXISTS `users` (
   `UserName` varchar(45) NOT NULL,
   `PK` int(11) NOT NULL AUTO_INCREMENT,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   PRIMARY KEY (`PK`),
   UNIQUE KEY `PK` (`PK`),
   KEY `UserName` (`UserName`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3;
 
 --
 -- Dumpning av Data i tabell `users`

@@ -10,7 +10,8 @@ require_once("./src/model/DAL/LoginDAL.php");
 		private $DAL; 
 
 		public function __construct(){
-			$this->DAL = new \DAL\LoginDAL(); 
+			$this->DAL = new \DAL\LoginDAL();
+			//$this->DAL->getUserWithEncryption();
 			$this->loginView = new \view\LoginView($this->DAL);
 		}
 		/*

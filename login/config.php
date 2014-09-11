@@ -10,9 +10,6 @@ class config {
 	private $TBL_NAME = "users"; 
 	private $connection; 
 
-//Stored procedure http://php.net/manual/en/mysqli.quickstart.stored-procedures.php
-//Mysql sp http://forums.mysql.com/read.php?98,358569
-
 	public function DBLogin(){
 
 		$mysqli = new mysqli("localhost", $this->DB_USERNAME, $this->DB_PASSWORD, $this->DB_NAME);
@@ -28,6 +25,21 @@ class config {
 
 		echo $mysqli->host_info . "\n";       
 	}    
+	public function firstSetup(){
+		$sql = "
+		USE " . $this->$DB_NAME .";
+		
+		CREATE TABLE IF NOT EXISTS `". $this->TBL_NAME ."` (
+  		`UserName` varchar(45) NOT NULL,
+  		`PK` int(11) NOT NULL AUTO_INCREMENT,
+  		`Password` varchar(45) NOT NULL,
+  		PRIMARY KEY (`PK`),
+  		UNIQUE KEY `PK` (`PK`),
+  		KEY `UserName` (`UserName`)
+		) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3;"; 
+	}
+
+	//http://alias.io/2010/01/store-passwords-safely-with-php-and-mysql/
 
 	public function handleDBError($error){
 		echo "$error";

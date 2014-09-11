@@ -28,21 +28,21 @@
     		//	throw new \Exception("Error no userName provided");
     		$ret = null; 
     		//http://stackoverflow.com/questions/60174/how-can-i-prevent-sql-injection-in-php
-			$sql = "SELECT * FROM " . self::TBL_NAME . " WHERE UserName = ?"; //Förhindrar sql injections
-			$statement = $this->mysqli->prepare($sql);
-			$statement->bind_param("s", $userName); 
+			$sql = "SELECT * FROM " . self::TBL_NAME . " WHERE UserName = ?";
+			$statement = $this->mysqli->prepare($sql);//Förhindrar sql injections
 
 	        if ($statement === FALSE) {
 	            throw new \Exception("prepare of $sql failed " . $this->mysqli->error);
 	        }	
-	 
+			$statement->bind_param("s", $userName); 
+
 	        //http://www.php.net/manual/en/mysqli-stmt.execute.php
 	        if ($statement->execute() === FALSE) {
 	            throw new \Exception("execute of $sql failed " . $statement->error);
 	        }
 	 
 	        if($result = $statement->get_result()->fetch_object()){	
-	        	$ret = new \model\User($result->PK, $result->UserName, $result->Password);
+	        	$ret = new \model\User($result->UserID, $result->UserName, $result->Password, $result->Hash);
 	    	}
 	        return $ret;
     	}	
@@ -51,10 +51,11 @@
     	*/
     	public function getUser($userName, $password){
       		$user = $this->getUserByUserName($userName); 
-    		if($user != null){
-    			$user->validate($password); 
-    			if($user->isValid())
-    				$this->currentUser = $user; 
+			if ($user != null){
+				$user->validate($password);
+
+        		if($user->isValid())
+        			$this->currentUser = $user; 
     		}
     		return $user; 
     	}
@@ -62,4 +63,41 @@
     	public function getCurrentUser(){
     		return $this->currentUser; //Privacy??
     	}
-	}
+
+    	public function saveAdminUser(){
+    		$userName = 'Admin';
+			$password = 'pas';
+
+			// A higher "cost" is more secure but consumes more processing power
+			$cost = 10;
+
+			// Create a random salt
+			$salt = strtr(base64_encode(mcrypt_create_iv(16, MCRYPT_DEV_URANDOM)), '+', '.');
+
+			// Prefix information about the hash so PHP knows how to verify it later.
+			// "$2a$" Means we're using the Blowfish algorithm. The following two digits are the cost parameter.
+			$salt = sprintf("$2a$%02d$", $cost) . $salt;
+
+			// Hash the password with the salt
+			$hash = crypt($password, $salt);
+		
+			/* check connection */
+			if (mysqli_connect_errno()) {
+			    printf("Connect failed: %s\n", mysqli_connect_error());
+			    exit();
+			}	
+			$sql = "INSERT INTO users(UserName, Password, Hash) VALUES ( ?, ?, ?)";
+			$statement = $this->mysqli->prepare($sql);
+
+	        if ($statement === FALSE) {
+	            throw new \Exception("prepare of $sql failed " . $this->mysqli->error);
+	        }	
+			$statement->bind_param("sss", $userName, $password, $hash); 
+
+	        //http://www.php.net/manual/en/mysqli-stmt.execute.php
+	        if ($statement->execute() === FALSE) {
+	            throw new \Exception("execute of $sql failed " . $statement->error);
+	        }
+	        return true;//Allt har gått väl
+    	}
+}
