@@ -44,7 +44,6 @@ require_once(ROOT_DIR . "/src/model/DAL/LoginDAL.php");
 						//korrekt usernamn och pass
 						$this->loginView->saveUserLoggedInSession();
 						return "Logging in ";
-						//return $this->loginView->logingSuccessFull($user); 
 					} else {
 						$this->loginView->addErrorMessage(\view\LoginView::PasswordError, "Felaktigt lösenord"); 
 					}	

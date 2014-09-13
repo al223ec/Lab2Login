@@ -23,7 +23,7 @@
 	    * @return Null eller ett user object 
 	    * @throws Exception om något går fel med SQL eller ingen input
 	    */
-    	private function getUserByUserName($userName){
+    	public function getUserByUserName($userName){
     		//if(!$userName)
     		//	throw new \Exception("Error no userName provided");
     		$ret = null; 
@@ -42,7 +42,7 @@
 	        }
 	 
 	        if($result = $statement->get_result()->fetch_object()){	
-	        	$ret = new \model\User($result->UserID, $result->UserName, $result->Hash);
+	        	$ret = new \model\User($result->UserID, $result->UserName, $result->Hash, $result->CookieValue);
 	    	}
 	        return $ret;
     	}	
@@ -113,7 +113,6 @@
 	    }
 
 	    public function saveCookieValue ($userID, $cookieValue){
-
 			$sql = "UPDATE " . self::TBL_NAME . " SET CookieValue = ? WHERE UserID = ?";
 			$statement = $this->mysqli->prepare($sql);
 

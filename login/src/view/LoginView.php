@@ -5,13 +5,11 @@ namespace view;
 require_once(ROOT_DIR . "/src/view/CookieHandler.php"); 
 
 class LoginView{
- 
+ 	//TODO: http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
  	//Kanske bör förändra dessa till ej statiska
  	private static $UserName =  "LoginView::UserName";  
 	private static $Password =  "LoginView::Password"; 
 	private static $AutoLogin = "LoginView::AutoLogin"; 
-
-	private static $cookieName = "LoginView::IsLoggedIn"; 
 	private static $sessionName = "LoginView::IsLoggedIn"; 
 
 	private $errorMessages;
@@ -21,8 +19,7 @@ class LoginView{
 
 	//Actions
 	const ActionLoggingIn = "login"; 
-	const ActionLoggingOut = "logout";  
-
+	const ActionLoggingOut = "logout";
 
 	private $loginDAL; 
 	private $cookieHandler; 
@@ -33,7 +30,7 @@ class LoginView{
 		$this->cookieHandler = new CookieHandler(); 
 	}
 	public function userIsLoggedIn(){
-		return isset($_SESSION[self::$sessionName]); 
+		return isset($_SESSION[self::$sessionName]) || $this->getAndVerifyUserByCookies(); 
 	}
 
 	public function userIsLoggingIn(){
@@ -50,7 +47,7 @@ class LoginView{
 			<form action='?a=". self::ActionLoggingIn ."' method='post' enctype='multipart/form-data'>
 				<fieldset>
 					<legend>Login - Skriv in användarnamn och lösenord</legend>
-					$prompt
+					". $prompt."
 					<label for='UserNameID' >Användarnamn :</label>
 					<input type='text' size='20' name='" . self::$UserName ."' id='UserNameID' value='' />" 
 					. $this->getErrorMessages(self::UserNameError) .
@@ -68,16 +65,45 @@ class LoginView{
 	}
 
 	public function loggedInView(){
+		$this->cookieHandler->checkIfCookieExpiries(5); 
 		$userName = isset($_SESSION[self::$sessionName]) ? $_SESSION[self::$sessionName]->getUserName() : ''; 
-		//var_dump($_SESSION[self::$sessionName]);
 		return $this->getHeader("$userName är inloggad") . "<a href='?a=". self::ActionLoggingOut ."'>Logga ut</a>" . $this->getFooter();
 	}
 
 	public function saveUserLoggedInSession(){
 		$_SESSION[self::$sessionName] = $this->loginDAL->getCurrentUser();
+		if($this->getIsAutologinSet()){
+			//Spara cookie
+			$this->saveCookies(); 
+		} 
 		header("Location: " . $_SERVER["PHP_SELF"]); 
 	}
+
+	private function saveCookies(){
+		$this->cookieHandler->saveCookie(self::$UserName, $this->loginDAL->getCurrentUser()->getUserName()); 
+		$cookieValue = $this->cookieHandler->saveCookieAndReturnValue(self::$Password); 
+		$this->loginDAL->saveCookieValue($this->loginDAL->getCurrentUser()->getUserID(), $cookieValue); 
+	}
+
+	private function getAndVerifyUserByCookies(){
+		if($userName = $this->cookieHandler->loadCookie(self::$UserName)){
+			if($user = $this->loginDAL->getUserByUserName($userName)){
+				if($user->validateByCookieValue($this->cookieHandler->loadCookie(self::$Password))){
+					$_SESSION[self::$sessionName] = $user; 
+					return true; 
+				}
+			}else{
+				//Hittar inte användarnamnet som sparats i cookien dvs cookien måste ha blivit manipulerad
+				echo '<script language="javascript">';
+				echo 'alert("Plz don\'t manipulate the cookie!")';
+				echo '</script>';
+			}
+		} 
+		return false;
+	}
+
 	public function logout(){
+		$this->removeCookies(); 
 		if(isset($_SESSION[self::$sessionName])){
   			unset($_SESSION[self::$sessionName]);
   			//session_destroy(); 
@@ -85,6 +111,11 @@ class LoginView{
 		}
   		return $this->renderLoginForm(); 
 	}	
+
+	private function removeCookies(){
+		$this->cookieHandler->removeCookie(self::$UserName); 
+		$this->cookieHandler->removeCookie(self::$Password); 	
+	}
 
 	private function getHeader($prompt){
  		return "<h1>Laborationskod xx222aa</h1><h2>$prompt</h2>"; 		
@@ -126,12 +157,12 @@ class LoginView{
     * @throws Exception if something is wrong or input does not exist
     */
 	private function getCleanInput($inputName) {
-		if (isset($_POST[$inputName]) == false) {
-	    	return "";
-		}
-	    return $this->sanitize($_POST[$inputName]);
+		return isset($_POST[$inputName]) ? $this->sanitize($_POST[$inputName]) : "";
 	}
- 
+ 	
+ 	private function getIsAutologinSet(){
+ 		return isset($_POST[self::$AutoLogin]); 
+ 	}
     /**
     * @param String input
     * @return String input - tags - trim

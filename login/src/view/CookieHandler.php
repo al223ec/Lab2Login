@@ -3,35 +3,43 @@
 namespace view; 
 
 class CookieHandler{
-	//Behöver spara informationen till db
-	//Bör inte använda hashen i cookien
-	public function __construct(){
-		//$this->saveHashedCookie("Password", "2a'$'10'$'DixWNrAgbkC7Z7T6JY7ex.g7hiqrXMF3qh9mBvI9CNQeWbeM.y5Tq"); 
-		//var_dump($this->loadAndConfirmHashedCookie("Password", "2a'$'10'$'DixWNrAgbkC7Z7T6JY7ex.g7hiqrXMF3qh9mBvI9CNQeWbeM.y5Tq")); 
-	}
+	
+	private $secondsToExperation = 180; 
 
-	public function saveHashedCookie($cookieName){
-		$cookieValue = $this->generateRandomString(); 
-//		$hash = crypt($this->generateRandomString(), $this->generateRandomString());
-		$this->saveCookie($cookieName, $cookieValue); 
-	}
-
-	public function saveCookie($cookieName){
-		$cookieValue = $this->generateRandomString(); 
-		setcookie($cookieName, $cookieValue, -1); 
+	public function saveCookie($cookieName, $cookieValue){
+		$this->setMyCookie($cookieName, $cookieValue); 
 	} 
 
+	public function saveCookieAndReturnValue($cookieName){
+		$cookieValue = $this->generateRandomString(); 
+		$this->setMyCookie($cookieName, $cookieValue); 
+		return $cookieValue; 
+	} 
+	private function setMyCookie($cookieName, $cookieValue){
+		$expiry = time() + $this->secondsToExperation;
+		$cookieData = (object) array( "cookieValue" => $cookieValue, "expiry" => $expiry );
+		setcookie($cookieName, json_encode( $cookieData ), $expiry); 
+	}
+
+	public function removeCookie($cookieName){
+		setcookie($cookieName, "", time() -1); 
+	}
+
+	public function checkIfCookieExpiries($minutes){
+		$seconds = $minutes * 60; 
+	//	$expiry = isset($_COOKIE[$cookieName]) ? json_decode($_COOKIE[$cookieName])->expiry : 0;
+	//	if($expiry === false)
+			return; 
+
+
+
+	}
 	public function loadCookie($cookieName){
-		throw new \Exception("CookieHandler::loadCookie Not implemented exception Processing Request");
+		return isset($_COOKIE[$cookieName]) ? json_decode($_COOKIE[$cookieName])->cookieValue : ""; 
 	}
 
-	public function loadAndConfirmHashedCookie($cookieName, $value){
-		$hashedValue = isset($_COOKIE[$cookieName]) ? $_COOKIE[$cookieName] : ""; 
-		return crypt($value, $hashedValue) === $hashedValue; 
-	}
-
-	private function generateRandomString($length = 16) {
- 	   $characters = '0123456789abcdefghijklmnopqrstuvwxyzåäöABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ';
+	private function generateRandomString($length = 18) {
+ 	   $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     	$randomString = '';
 	    for ($i = 0; $i < $length; $i++) {
 	        $randomString .= $characters[rand(0, strlen($characters) - 1)];
