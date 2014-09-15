@@ -18,11 +18,11 @@ class CookieHandler{
 	private function setMyCookie($cookieName, $cookieValue){
 		$expiry = time() + $this->secondsToExperation;
 		$cookieData = (object) array( "cookieValue" => $cookieValue, "expiry" => $expiry );
-		setcookie($cookieName, json_encode( $cookieData ), $expiry); 
+		setcookie($cookieName, json_encode( $cookieData ), $expiry, "/"); 
 	}
 
 	public function removeCookie($cookieName){
-		setcookie($cookieName, "", time() -1); 
+		setcookie($cookieName, "", time() -100); 
 	}
 
 	public function checkIfCookieExpiries($minutes){

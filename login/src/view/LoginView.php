@@ -10,7 +10,6 @@ class LoginView{
  	private static $UserName =  "LoginView::UserName";  
 	private static $Password =  "LoginView::Password"; 
 	private static $AutoLogin = "LoginView::AutoLogin"; 
-	private static $sessionName = "LoginView::IsLoggedIn"; 
 
 	private $errorMessages;
 	//erromessage nycklar
@@ -21,18 +20,19 @@ class LoginView{
 	const ActionLoggingIn = "login"; 
 	const ActionLoggingOut = "logout";
 
-	private $loginDAL; 
+	private $loginModel; 
 	private $cookieHandler; 
 
-	public function __construct($loginDAL) {
-		$this->loginDAL = $loginDAL; 
+	public function __construct($loginModel) {
+		$this->loginModel = $loginModel; 
 		$this->errorMessages = array(); 
 		$this->cookieHandler = new CookieHandler(); 
 	}
+	//Denna bör flyttas till model, UserSession model
 	public function userIsLoggedIn(){
-		return isset($_SESSION[self::$sessionName]) || $this->getAndVerifyUserByCookies(); 
+		return $this->loginModel->isUserLoggedIn($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]) || $this->getAndVerifyUserByCookies(); 
 	}
-
+/*
 	public function userIsLoggingIn(){
 		return isset($_GET[self::ActionLoggingIn]);
 	}
@@ -40,7 +40,7 @@ class LoginView{
 	public function userIsLoggingOut(){
 		return isset($_GET[self::ActionLoggingOut]);
 	}
-
+*/
 	public function renderLoginForm($prompt = ""){
  		return 
  			$this->getHeader("Ej Inloggad") . "		  	
@@ -66,30 +66,29 @@ class LoginView{
 
 	public function loggedInView(){
 		$this->cookieHandler->checkIfCookieExpiries(5); 
-		$userName = isset($_SESSION[self::$sessionName]) ? $_SESSION[self::$sessionName]->getUserName() : ''; 
+		$userName = $this->loginModel->getUserName();
 		return $this->getHeader("$userName är inloggad") . "<a href='?a=". self::ActionLoggingOut ."'>Logga ut</a>" . $this->getFooter();
 	}
 
-	public function saveUserLoggedInSession(){
-		$_SESSION[self::$sessionName] = $this->loginDAL->getCurrentUser();
+	public function loginUser($user){
+		$this->loginModel->saveSession($user, $_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]); 
 		if($this->getIsAutologinSet()){
-			//Spara cookie
 			$this->saveCookies(); 
 		} 
 		header("Location: " . $_SERVER["PHP_SELF"]); 
 	}
 
 	private function saveCookies(){
-		$this->cookieHandler->saveCookie(self::$UserName, $this->loginDAL->getCurrentUser()->getUserName()); 
+		$this->cookieHandler->saveCookie(self::$UserName, $this->loginModel->getUserName()); 
 		$cookieValue = $this->cookieHandler->saveCookieAndReturnValue(self::$Password); 
-		$this->loginDAL->saveCookieValue($this->loginDAL->getCurrentUser()->getUserID(), $cookieValue); 
+		$this->loginModel->saveCookieValueToDB($cookieValue); 
 	}
 
 	private function getAndVerifyUserByCookies(){
 		if($userName = $this->cookieHandler->loadCookie(self::$UserName)){
-			if($user = $this->loginDAL->getUserByUserName($userName)){
+			if($user = $this->loginModel->getUserByUserName($userName)){
 				if($user->validateByCookieValue($this->cookieHandler->loadCookie(self::$Password))){
-					$_SESSION[self::$sessionName] = $user; 
+					$this->loginModel->saveSession($user, $_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]);
 					return true; 
 				}
 			}else{
@@ -101,11 +100,13 @@ class LoginView{
 		} 
 		return false;
 	}
+	public function getCurrentAction(){
+		return isset($_GET['a']) ? $_GET['a'] : "";
+	}
 
 	public function logout(){
 		$this->removeCookies(); 
-		if(isset($_SESSION[self::$sessionName])){
-  			unset($_SESSION[self::$sessionName]);
+		if($this->loginModel->logout()){
   			//session_destroy(); 
   			return $this->renderLoginForm("<p>Du har nu loggat ut!</p>"); 
 		}
