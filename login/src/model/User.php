@@ -8,7 +8,7 @@ class User{
 	private $userName;
 	private $hash; 
 	private $cookieValue; 
-	private $valid;
+	private $valid = false;
 
 	public function __construct($userID, $userName, $hash, $cookieValue){
 		$this->userID = $userID; 

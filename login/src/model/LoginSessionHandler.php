@@ -19,12 +19,12 @@ class LoginSessionHandler{
 		$_SESSION[self::$userIndex] = $user; 
 	}
 
-	public function getUserFromSession(){
+	public function getUserFromSession($clientIp, $clientBrowserAgent){
 		$ip = isset($_SESSION[self::$clientIpIndex]) ? $_SESSION[self::$clientIpIndex] : null; 
 		$browser = isset($_SESSION[self::$clientBrowserAgentIndex]) ? $_SESSION[self::$clientBrowserAgentIndex] : null;  
 		$user = isset($_SESSION[self::$userIndex]) ? $_SESSION[self::$userIndex] : null; 
 
-		if($ip === null || $browser === null || $user === null){
+		if($ip === null || $browser === null || $user === null || $ip !== $clientIp || $browser !== $clientBrowserAgent){
 			return null; 
 		}
 		return $user; 
