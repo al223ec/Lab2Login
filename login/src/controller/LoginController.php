@@ -22,10 +22,13 @@ require_once(ROOT_DIR . "/src/model/Login.php");
 					return $this->userIsloggingIn();
 				case \view\LoginView::ActionLoggingOut :
 					return $this->logout();
+				case \view\LoginView::LoggedIn : 
+					return $this->loginView->loggedInView(); 
 			}
+			/*
 			if($this->loginView->userIsLoggedIn()){
 				return $this->loginView->loggedInView();
-			}
+			}*/
 			return $this->renderLoginForm();	
 		}
 

@@ -9,7 +9,7 @@ require_once(ROOT_DIR . "/src/model/LoginSessionHandler.php");
 
 		private $userDAL; 
 		private $loginSessionHandler;
-		private $currentUser; 
+		private $currentUser; //Om det är en användare inloggad sparas hen här
 
 		public function __construct(){
 			$this->userDAL = new \DAL\UserDAL(); 
@@ -34,6 +34,18 @@ require_once(ROOT_DIR . "/src/model/LoginSessionHandler.php");
         	}
         	return $user;     		
     	}
+
+    	public function getUserFromDBWithCookie($userName, $cookieValue){
+    		$user = $this->userDAL->getUserByUserName($userName); 
+			if ($user != null){
+				$user->validateByCookieValue($cookieValue);
+        		if($user->isValid()){
+        			$this->currentUser = $user; 
+        		}
+        	}
+        	return $user; 
+    	}
+
 		public function getUserName(){
 			return isset($this->currentUser) ?  $this->currentUser->getUserName() : ""; 
 		}
@@ -42,6 +54,7 @@ require_once(ROOT_DIR . "/src/model/LoginSessionHandler.php");
 			$this->currentUser = $this->loginSessionHandler->getUserFromSession($clientIp, $clientBrowserAgent); 
 			return $this->currentUser !== null; 
 		}
+
 		public function logout(){
 			$this->currentUser = null; 
 			return $this->loginSessionHandler->removeSession(); 
@@ -52,9 +65,4 @@ require_once(ROOT_DIR . "/src/model/LoginSessionHandler.php");
 		public function saveCookieValueToDB($cookieValue){
 			return $this->userDAL->saveCookieValue($this->currentUser->getUserID(), $cookieValue); 
 		}
-
-		public function getUserByUserName($userName){
-			return $this->userDAL->getUserByUserName($userName); 
-		}
-	
 	}
