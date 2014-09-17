@@ -67,7 +67,7 @@ class LoginCookieHandler {
 
 	//Läs cookie funktioner
 	/**
-	*Kontroller om cookien expires
+	* Kontroller om cookien expires
 	 * @param $sekunder = Antal sekunder default updateCookieInterval
 	 */ 
 	public function cookieExpiries($seconds = 0){
@@ -89,18 +89,20 @@ class LoginCookieHandler {
 		}
 		return false; 
 	}	
-
-	/** Hämtar vilken sekund som kakorna expires kontrollerar även att de skapdes samma sekund
+	/** 
+	* Hämtar vilken sekund som kakorna expires kontrollerar även att de skapdes samma sekund
 	 * @return null eller antalet sekunder
 	 */
 	public function loadExpiry(){
 		$passwordObj = isset($_COOKIE[LoginView::Password])  ? json_decode($_COOKIE[LoginView::Password]) : null; 
-		$userNameObj = isset($_COOKIE[LoginView::UserName]) ? json_decode($_COOKIE[LoginView::Password]) : null; 
+		$userNameObj = isset($_COOKIE[LoginView::UserName]) ? json_decode($_COOKIE[LoginView::UserName]) : null; 
 
 		if($passwordObj !== null && $userNameObj !== null){
 			$passwordExpiry = isset($passwordObj->expiry) ? $passwordObj->expiry : null; 
 			$userNameExpiry = isset($userNameObj->expiry) ? $userNameObj->expiry : null; 
-			return is_numeric($passwordExpiry) && is_numeric($userNameExpiry) && $passwordExpiry === $userNameExpiry ? $passwordExpiry : null; 
+			if(is_numeric($passwordExpiry) && is_numeric($userNameExpiry) && $passwordExpiry === $userNameExpiry){
+				return $passwordExpiry; 
+			}
 		}
 		return null; 
 	}

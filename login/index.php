@@ -4,7 +4,7 @@
 
 define('ROOT_DIR', realpath(dirname(__FILE__)));
 
-setlocale (LC_TIME, "sve");
+setlocale (LC_TIME, "swe");
 
 require_once("../common/HTMLView.php");
 require_once(ROOT_DIR . "/src/controller/LoginController.php");
@@ -22,3 +22,6 @@ $lc = new \controller\LoginController();
 
 $HTMLBody = $lc->performAction();
 $view->echoHTML($HTMLBody);
+
+//Återstår att genomföra alla tester på webbhotellet.
+//Samt gör någon bra DBConfig

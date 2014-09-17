@@ -9,15 +9,14 @@ class Login {
 
 	private $userDAL; 
 	private $loginSessionHandler;
-	private $currentUser; //Om det är en användare inloggad sparas hen här
+	private $currentUser = null; //Om det är en användare inloggad sparas hen här
 
 	public function __construct(){
 		$this->userDAL = new \DAL\UserDAL(); 
 		$this->loginSessionHandler = new LoginSessionHandler(); 
 	}
 
-	public function saveSession($user, $clientIp, $clientBrowserAgent, $rememberUser){
-		$this->currentUser = $user; 
+	public function saveSession($clientIp, $clientBrowserAgent, $rememberUser){
 		$this->loginSessionHandler->saveSession($this->currentUser, $clientIp, $clientBrowserAgent, $rememberUser); 
 	}
 
@@ -50,7 +49,7 @@ class Login {
 		return isset($this->currentUser) ?  $this->currentUser->getUserName() : ""; 
 	}
 
-	public function isUserLoggedIn($clientIp, $clientBrowserAgent){
+	public function ceckSessionAndLoadUserFromSession($clientIp, $clientBrowserAgent){
 		$this->currentUser = $this->loginSessionHandler->getUserFromSession($clientIp, $clientBrowserAgent); 
 		return $this->currentUser !== null; 
 	}

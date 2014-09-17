@@ -21,11 +21,13 @@ class LoginView {
 	const ActionLoggingOut = "logout";
 	const LoggedIn = "loggedIn"; 
 
+	private $cookieHandler; 
 	private $loginModel; 
 
 	public function __construct(\model\Login $loginModel) {
 		$this->loginModel = $loginModel; 
 		$this->errorMessages = array(); 
+		$this->cookieHandler = new LoginCookieHandler($loginModel); 
 	}
 
 	public function getCurrentAction(){
@@ -37,13 +39,13 @@ class LoginView {
 	}
 
 	private function userIsLoggedIn(){
-		return $this->loginModel->ceckSessionAndLoadUserFromSession($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]);  
+		return $this->loginModel->isUserLoggedIn($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]) || $this->getAndVerifyUserByCookies(); 
 	}
 
 
 	public function renderLoginForm($prompt = ""){
  		return 
- 			$this->getFormHeader("Ej Inloggad") . "		  	
+ 			$this->getHeader("Ej Inloggad") . "		  	
 			<form action='?". self::Action ."=". self::ActionLoggingIn ."' method='post' enctype='multipart/form-data'>
 				<fieldset>
 					<legend>Login - Skriv in användarnamn och lösenord</legend>
@@ -61,39 +63,75 @@ class LoginView {
 					<input type='submit' name=''  value='Logga in' />
 				</fieldset>
 			</form>"
-			. $this->getFormFooter(); 
+			. $this->getFooter(); 
 	}
 
 	public function loggedInView(){
+		if($this->cookieHandler->cookiesAreSet() && $this->cookieHandler->cookieExpiries()){
+			$this->cookieHandler->saveCookies(); 
+		}
+
 		$userName = $this->loginModel->getUserName();
 		$rememberMeIsSet = $this->loginModel->isRememberUserSet() ? " Vi kommer ihåg dig till nästa gång" : "";
-		return $this->getFormHeader("$userName är inloggad $rememberMeIsSet") . "<a href='?" . self::Action ."=". self::ActionLoggingOut ."'>Logga ut</a>" . $this->getFormFooter();
+		return $this->getHeader("$userName är inloggad $rememberMeIsSet") . "<a href='?" . self::Action ."=". self::ActionLoggingOut ."'>Logga ut</a>" . $this->getFooter();
 	}
 
-	public function loginUser(){
-		$this->loginModel->saveSession($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"], $this->getIsAutologinSet()); 
-	}
-
-	public function redirect(){
+	public function loginUser($user){
+		$this->loginModel->saveSession($user, $_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"], $this->getIsAutologinSet()); 
+		if($this->getIsAutologinSet()){
+			$this->cookieHandler->saveCookies(); 
+		} 
 		header("Location: " . $_SERVER["PHP_SELF"]); 
 	}
 
+ 	private function getIsAutologinSet(){
+ 		return isset($_POST[self::AutoLogin]); 
+ 	}
+
+ 	/** Om det finns kakor hämtas dessa och valideras mot databasen
+ 	*	@return bool 
+ 	*	true om det finns kakor som är giltiga annars false
+ 	*/
+	private function getAndVerifyUserByCookies(){
+		$userName = $this->cookieHandler->loadUserNameCookie(); 
+		if($this->cookieHandler->cookiesAreSet() && $userName !== ""){
+			$user = $this->loginModel->getUserFromDBWithCookie($userName, $this->cookieHandler->loadPasswordCookie(), $this->cookieHandler->loadExpiry()); 
+			if($user !== null && $user->isValid()){
+				$this->loginModel->saveSession($user, $_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"], false);
+				return true; 
+			}else{
+				//Hittar inte användarnamnet som sparats i cookien dvs cookien måste ha blivit manipulerad
+				$this->cookieHandler->removeCookies(); //Ta bort ev kakor
+				$this->loginModel->logout();
+				echo "Plz don\"t manipulate any cookie!"; 
+				die(); 
+				echo "<script language='javascript'>";
+				echo "alert('Plz don\"t manipulate any cookie!')";
+				echo "</script>";
+			}
+		} 
+		return false;
+	}
 
 	public function logout($displayMessage){
+		$this->cookieHandler->removeCookies(); 
 		if($displayMessage){
   			return $this->renderLoginForm("<p>Du har nu loggat ut!</p>"); 
 		}
   		return $this->renderLoginForm(); 
 	}	
 
-	private function getFormHeader($prompt){
- 		return "<h1>Laboration 2 al223ec</h1><h2>$prompt</h2>"; 		
+	private function getHeader($prompt){
+ 		return "<h1>Laboration 2 Inlog al223ec</h1><h2>$prompt</h2>"; 		
 	}
 
-	private function getFormFooter(){
+	private function getFooter(){
 		return "<p> ". strftime("%A") . " Den " .  strftime("%d %B") . " " . " år " . strftime("%Y") .  ". Klockan är [" . strftime("%H:%M:%S") ."]</p>"; 
 	}
 
+
+	//Use $this to refer to the current object. Use self to refer to the current class. 
+	//In other words, use $this->member for non-static members, use self::$member for static members.
 	public function getUserName(){
 		$ret = $this->getCleanInput(self::UserName);
 		if($ret === ""){
@@ -109,11 +147,6 @@ class LoginView {
 		}
 		return $ret; 
 	}
-
-	public function getIsAutologinSet(){
- 		return isset($_POST[self::AutoLogin]); 
- 	}
-
 	/**
     * @param String input
     * @return String input - tags - trim
