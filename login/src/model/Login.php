@@ -3,13 +3,13 @@
 namespace model; 
 
 require_once(ROOT_DIR . "/src/model/DAL/UserDAL.php");
-require_once(ROOT_DIR . "/src/model/LoginSessionHandler.php");
+require_once(ROOT_DIR . "/src/model/session/LoginSessionHandler.php");
 
 class Login {
 
 	private $userDAL; 
 	private $loginSessionHandler;
-	private $currentUser = null; //Om det är en användare inloggad sparas hen här
+	private $currentUser = null; //Om det är en användare inloggad sparas hen här, endast validerade users kommer att sparas
 
 	public function __construct(){
 		$this->userDAL = new \DAL\UserDAL(); 

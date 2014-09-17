@@ -1,15 +1,9 @@
 <?php
 
-
-
 define('ROOT_DIR', realpath(dirname(__FILE__)));
-
-setlocale (LC_TIME, "swe");
 
 require_once("../common/HTMLView.php");
 require_once(ROOT_DIR . "/src/controller/LoginController.php");
-require_once("config.php");
-
 
 session_start(); 
 //var_dump($_SERVER["HTTP_USER_AGENT"]);
