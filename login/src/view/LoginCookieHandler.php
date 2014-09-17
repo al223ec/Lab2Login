@@ -3,12 +3,15 @@
 namespace view; 
 
 class LoginCookieHandler {
+	/**Hanterar endast kakor för LoginView
+	 * Uppdaterar kakorna när intervallet har passerat detta för att starta tiden till AutoLogout till sista aktivitet från användaren
+	 */
 	
 	private $loginModel; 
-
-	private $secondsToExperation = 1800; //Default 30 min
+	private $secondsToExperation = 1800; //Default 300 min
 	//Updateringsinterval sekunder
-	private $updateCookieInterval = 10;  
+	private $updateCookieInterval = 180;  
+	private $expiry = 0; 
 
 	public function __construct(\model\Login $loginModel) {
 		$this->loginModel = $loginModel; 
@@ -22,6 +25,7 @@ class LoginCookieHandler {
 		$this->removeCookie(LoginView::UserName); 
 		$this->removeCookie(LoginView::Password); 	
 	}
+
 	private function removeCookie($cookieName){
 		setcookie($cookieName, "", 1, "/"); 
 	}
@@ -31,7 +35,7 @@ class LoginCookieHandler {
 	*/
 	public function saveCookies(){
 		$this->setMyCookie(LoginView::UserName, $this->loginModel->getUserName()); 
-		$this->loginModel->saveCookieValueToDB($this->saveCookieAndReturnValue(LoginView::Password)); 
+		$this->loginModel->saveCookieValueToDB($this->saveCookieAndReturnValue(LoginView::Password), $this->expiry); 
 	}
 
 	/**
@@ -44,9 +48,9 @@ class LoginCookieHandler {
 	} 
 
 	private function setMyCookie($cookieName, $cookieValue){
-		$expiry = time() + $this->secondsToExperation;
-		$cookieData = (object) array( "cookieValue" => $cookieValue, "expiry" => $expiry );
-		setcookie($cookieName, json_encode( $cookieData ), $expiry, "/"); 
+		$this->expiry = time() + $this->secondsToExperation;
+		$cookieData = (object) array( "cookieValue" => $cookieValue, "expiry" => $this->expiry );
+		setcookie($cookieName, json_encode( $cookieData ), $this->expiry, "/"); 
 	}
 	/**
 	* @param Längden på strängen 
@@ -64,18 +68,17 @@ class LoginCookieHandler {
 	//Läs cookie funktioner
 	/**
 	*Kontroller om cookien expires
-	* @param $sekunder = Antal sekunder default updateCookieInterval
-	*/ 
-	public function checkIfCookieExpiries($seconds = 0){
+	 * @param $sekunder = Antal sekunder default updateCookieInterval
+	 */ 
+	public function cookieExpiries($seconds = 0){
 		if($seconds === 0){
 			$seconds = $this->updateCookieInterval;
 		}
 
 		$expiryTimeToCheck = time() + $this->secondsToExperation - $seconds; 
-		$object = isset($_COOKIE[LoginView::Password]) && isset($_COOKIE[LoginView::UserName]) ? json_decode($_COOKIE[LoginView::Password]) : null; 
-		$expiry = isset($object->expiry) ? $object->expiry : 0; 
+		$expiry = $this->loadExpiry();
 
-		if(!is_numeric($expiry) || $expiry === 0){ //Något är fel, det finns ingen cookie eller så har den blivit manipulerad
+		if(!is_numeric($expiry)){ //Något är fel, det finns ingen cookie eller så har den blivit manipulerad
 			$this->removeCookies(); //Ta bort ev kakor
 			$this->loginModel->logout(); //kill the session!! 
 			return false; 
@@ -87,13 +90,28 @@ class LoginCookieHandler {
 		return false; 
 	}	
 
+	/** Hämtar vilken sekund som kakorna expires kontrollerar även att de skapdes samma sekund
+	 * @return null eller antalet sekunder
+	 */
+	public function loadExpiry(){
+		$passwordObj = isset($_COOKIE[LoginView::Password])  ? json_decode($_COOKIE[LoginView::Password]) : null; 
+		$userNameObj = isset($_COOKIE[LoginView::UserName]) ? json_decode($_COOKIE[LoginView::Password]) : null; 
+
+		if($passwordObj !== null && $userNameObj !== null){
+			$passwordExpiry = isset($passwordObj->expiry) ? $passwordObj->expiry : null; 
+			$userNameExpiry = isset($userNameObj->expiry) ? $userNameObj->expiry : null; 
+			return is_numeric($passwordExpiry) && is_numeric($userNameExpiry) && $passwordExpiry === $userNameExpiry ? $passwordExpiry : null; 
+		}
+		return null; 
+	}
+
 	public function loadUserNameCookie(){
-		return $this->loadCookie(LoginView::UserName); 
+		return $this->loadCookieValue(LoginView::UserName); 
 	}
 	public function loadPasswordCookie(){
-		return $this->loadCookie(LoginView::Password); 
+		return $this->loadCookieValue(LoginView::Password); 
 	}
-	private function loadCookie($cookieName){
+	private function loadCookieValue($cookieName){
 		$object = isset($_COOKIE[$cookieName]) ? json_decode($_COOKIE[$cookieName]) : null;
 		return isset($object->cookieValue) ? $object->cookieValue : ""; 
 	}

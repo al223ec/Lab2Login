@@ -24,12 +24,9 @@ require_once(ROOT_DIR . "/src/model/Login.php");
 					return $this->logout();
 				case \view\LoginView::LoggedIn : 
 					return $this->loginView->loggedInView(); 
+				default : 
+					return $this->renderLoginForm();
 			}
-			/*
-			if($this->loginView->userIsLoggedIn()){
-				return $this->loginView->loggedInView();
-			}*/
-			return $this->renderLoginForm();	
 		}
 
 		private function userIsloggingIn(){

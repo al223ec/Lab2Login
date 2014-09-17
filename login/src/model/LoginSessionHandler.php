@@ -7,16 +7,20 @@ class LoginSessionHandler{
 	private static $userIndex = "SESSION::USER"; 
 	private static $clientIpIndex = "SESSION::CLIENTIP"; 
 	private static $clientBrowserAgentIndex = "SESSION::BROWSERAGENT";
+	private static $rememberUserIndex = "SESSION::REMEMBERUSER"; 
 
 	public function __construct(){
 		if(!isset($_SESSION))
 			throw new \Exception("LoginSessionHandler::construct SESSION finns inte!", 1);			
 	}
 
-	public function saveSession($user, $clientIp, $clientBrowserAgent){
+	public function saveSession($user, $clientIp, $clientBrowserAgent, $rememberUser){
 		$_SESSION[self::$clientIpIndex] = $clientIp; 
 		$_SESSION[self::$clientBrowserAgentIndex] = $clientBrowserAgent; 
 		$_SESSION[self::$userIndex] = $user; 
+		if($rememberUser){
+			$_SESSION[self::$rememberUserIndex] = $rememberUser; 
+		}
 	}
 
 	public function getUserFromSession($clientIp, $clientBrowserAgent){
@@ -30,9 +34,18 @@ class LoginSessionHandler{
 		return $user; 
 	}
 
+	public function isRememberUserSet(){
+		if(isset($_SESSION[self::$rememberUserIndex])){
+			unset($_SESSION[self::$rememberUserIndex]); 
+			return true; 	
+		} 
+		return false;
+	}
+
 	public function removeSession(){
-		if(isset($_SESSION[self::$userIndex])){
-			unset($_SESSION[self::$userIndex]); 
+		if(isset($_SESSION[self::$userIndex]) && isset($_SESSION[self::$clientBrowserAgentIndex]) && isset($_SESSION[self::$clientIpIndex]) ){
+			unset($_SESSION[self::$clientBrowserAgentIndex]); 
+			unset($_SESSION[self::$clientIpIndex]); 
 			return true; 
 		}
 		return false; 

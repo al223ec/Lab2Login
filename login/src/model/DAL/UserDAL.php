@@ -41,7 +41,7 @@
 	        }
 	 
 	        if($result = $statement->get_result()->fetch_object()){	
-	        	$ret = new \model\User($result->UserID, $result->UserName, $result->Hash, $result->CookieValue);
+	        	$ret = new \model\User($result->UserID, $result->UserName, $result->Hash, $result->CookieValue, $result->CookieExpiration);
 	    	}
 	        return $ret;
     	}	
@@ -92,14 +92,14 @@
 	        return filter_var($temp, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW);
 	    }
 
-	    public function saveCookieValue ($userID, $cookieValue){
-			$sql = "UPDATE " . self::TBL_NAME . " SET CookieValue = ? WHERE UserID = ?";
+	    public function saveCookieValue ($userID, $cookieValue, $cookieExpiration = 0){
+			$sql = "UPDATE " . self::TBL_NAME . " SET CookieValue = ?, CookieExpiration = ? WHERE UserID = ?";
 			$statement = $this->mysqli->prepare($sql);
 
 	        if ($statement === FALSE) {
 	            throw new \Exception("prepare of $sql failed " . $this->mysqli->error);
 	        }	
-			$statement->bind_param("ss", $cookieValue, $userID); 
+			$statement->bind_param("sss", $cookieValue, $cookieExpiration, $userID); 
 
 	        //http://www.php.net/manual/en/mysqli-stmt.execute.php
 	        if ($statement->execute() === FALSE) {
@@ -108,7 +108,6 @@
 	 
 	        return true; 
 	    }
-
 	    private function performSQL($sql, array $params){
 	    }
 }

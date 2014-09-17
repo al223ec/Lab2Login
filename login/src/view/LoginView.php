@@ -30,18 +30,18 @@ class LoginView {
 		$this->cookieHandler = new LoginCookieHandler($loginModel); 
 	}
 
-	//Denna bör flyttas till model, UserSession model
-	private function userIsLoggedIn(){
-		return $this->loginModel->isUserLoggedIn($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]) || $this->getAndVerifyUserByCookies(); 
-	}
-
 	public function getCurrentAction(){
 		$action = isset($_GET[self::Action]) ? $_GET[self::Action] : "";
 		if($this->userIsLoggedIn() && $action === ""){
 			 $action = self::LoggedIn; 
 		}
-		return  $action; 
+		return $action; 
 	}
+
+	private function userIsLoggedIn(){
+		return $this->loginModel->isUserLoggedIn($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]) || $this->getAndVerifyUserByCookies(); 
+	}
+
 
 	public function renderLoginForm($prompt = ""){
  		return 
@@ -63,20 +63,21 @@ class LoginView {
 					<input type='submit' name=''  value='Logga in' />
 				</fieldset>
 			</form>"
-			 . $this->getFooter(); 
+			. $this->getFooter(); 
 	}
 
 	public function loggedInView(){
-		if($this->cookieHandler->cookiesAreSet() && $this->cookieHandler->checkIfCookieExpiries()){
+		if($this->cookieHandler->cookiesAreSet() && $this->cookieHandler->cookieExpiries()){
 			$this->cookieHandler->saveCookies(); 
 		}
 
 		$userName = $this->loginModel->getUserName();
-		return $this->getHeader("$userName är inloggad") . "<a href='?" . self::Action ."=". self::ActionLoggingOut ."'>Logga ut</a>" . $this->getFooter();
+		$rememberMeIsSet = $this->loginModel->isRememberUserSet() ? " Vi kommer ihåg dig till nästa gång" : "";
+		return $this->getHeader("$userName är inloggad $rememberMeIsSet") . "<a href='?" . self::Action ."=". self::ActionLoggingOut ."'>Logga ut</a>" . $this->getFooter();
 	}
 
 	public function loginUser($user){
-		$this->loginModel->saveSession($user, $_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]); 
+		$this->loginModel->saveSession($user, $_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"], $this->getIsAutologinSet()); 
 		if($this->getIsAutologinSet()){
 			$this->cookieHandler->saveCookies(); 
 		} 
@@ -90,9 +91,9 @@ class LoginView {
 	private function getAndVerifyUserByCookies(){
 		$userName = $this->cookieHandler->loadUserNameCookie(); 
 		if($userName !== ""){
-			$user = $this->loginModel->getUserFromDBWithCookie($userName, $this->cookieHandler->loadPasswordCookie()); 
+			$user = $this->loginModel->getUserFromDBWithCookie($userName, $this->cookieHandler->loadPasswordCookie(), $this->cookieHandler->loadExpiry()); 
 			if($user !== null && $user->isValid()){
-				$this->loginModel->saveSession($user, $_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]);
+				$this->loginModel->saveSession($user, $_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"], false);
 				return true; 
 			}else{
 				//Hittar inte användarnamnet som sparats i cookien dvs cookien måste ha blivit manipulerad
@@ -116,7 +117,7 @@ class LoginView {
 	}	
 
 	private function getHeader($prompt){
- 		return "<h1>Laborationskod xx222aa</h1><h2>$prompt</h2>"; 		
+ 		return "<h1>Laboration 2 Inlog al223ec</h1><h2>$prompt</h2>"; 		
 	}
 
 	private function getFooter(){
