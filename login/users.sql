@@ -28,20 +28,20 @@ SET time_zone = "+00:00";
 -- use databaseName
 CREATE TABLE IF NOT EXISTS `users` (
   `UserName` varchar(45) NOT NULL,
-  `PK` int(11) NOT NULL AUTO_INCREMENT,
-  `Password` varchar(45) NOT NULL,
-  PRIMARY KEY (`PK`),
-  UNIQUE KEY `PK` (`PK`),
+  `UserID` int(11) NOT NULL AUTO_INCREMENT,
+  `Hash` varchar(200) NOT NULL,
+  `CookieValue` varchar(150) DEFAULT NULL,
+  PRIMARY KEY (`UserID`),
+  UNIQUE KEY `PK` (`UserID`),
   KEY `UserName` (`UserName`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5 ;
 
 --
 -- Dumpning av Data i tabell `users`
 --
 
-INSERT INTO `users` (`UserName`, `PK`, `Password`) VALUES
-('Admin', 1, 'Password'),
-('Regularuser', 2, 'Password');
+INSERT INTO `users` (`UserName`, `UserID`, `Hash`, `CookieValue`) VALUES
+('Admin', 3, '$2a$10$DixWNrAgbkC7Z7T6JY7ex.g7hiqrXMF3qh9mBvI9CNQeWbeM.y5Tq', NULL);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

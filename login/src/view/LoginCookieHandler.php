@@ -4,9 +4,9 @@ namespace view;
 
 class LoginCookieHandler {
 	
-	private $secondsToExperation = 1800; //Default 30 min
 	private $loginModel; 
 
+	private $secondsToExperation = 1800; //Default 30 min
 	//Updateringsinterval sekunder
 	private $updateCookieInterval = 10;  
 
