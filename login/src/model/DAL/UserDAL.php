@@ -5,19 +5,19 @@
 	require_once(ROOT_DIR . "/src/model/User.php"); 
 
 	class UserDAL {
-/* local
+/* local /*/
 		const DB_CONNECTION = "127.0.0.1"; 
 		const DB_PASSWORD = ""; 
 		const DB_USERNAME = "dbUser"; 
 		const DB_NAME = "lab2logindb"; 
 		const TBL_NAME = "users"; 
-*/
+/*
 		const DB_CONNECTION = "antonledstrom.se.mysql"; 
 		const DB_PASSWORD = "674aSFuZ"; 
 		const DB_USERNAME = "antonledstrom_s"; 
 		const DB_NAME = "antonledstrom_s"; 
 		const TBL_NAME = "users"; 
-
+*/
 		private $mysqli;
 
 		public function __construct(){

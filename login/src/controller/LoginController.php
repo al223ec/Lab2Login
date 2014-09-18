@@ -27,15 +27,12 @@ class LoginController {
 				return $this->userIsloggingIn();
 			case \view\LoginView::ActionLoggingOut :
 				return $this->logout();
-			case \view\LoginView::LoggedIn : 
-				return $this->userIsLoggedIn(); 
+			default : 
+				if($this->userIsLoggedInWithCookies() || $this->loginView->userIsLoggedIn()){
+					return $this->userIsLoggedIn(); 
+				}
+				return $this->renderLoginForm();
 		}
-
-		if($this->getAndVerifyUserByCookies()){
-			return $this->userIsLoggedIn(); 
-		}
-
-		return $this->renderLoginForm();
 	}
 
 	private function userIsLoggedIn(){
@@ -48,6 +45,7 @@ class LoginController {
 	private function userIsloggingIn(){
 		$un = $this->loginView->getUserName();
 		$pw = $this->loginView->getPassword();
+		$user = null; 
 
 		if($un){
 			$user = $this->loginModel->getUserFromDB($un, $pw); 
@@ -55,18 +53,15 @@ class LoginController {
 				//korrekt username
 				if($user->isValid()){
 					//korrekt usernamn och pass
-					$this->loginView->loginUser($user);
 					if($this->loginView->getIsAutologinSet()){
 						$this->cookieHandler->saveCookies(); 
 					}
+					$this->loginView->loginUser();
 					$this->loginView->redirect(); 
 					return "Logging in!";
-				} else {
-					$this->loginView->addErrorMessage(\view\LoginView::PasswordError, "Felaktigt lösenord"); 
-				}	
-			}else{
-				$this->loginView->addErrorMessage(\view\LoginView::UserNameError, "Felaktigt användarnamn"); 		
+				}
 			}
+			$this->loginView->populateErrorMessages($user);
 		}
 		return $this->renderLoginForm();  
 	} 
@@ -87,7 +82,7 @@ class LoginController {
  	*	@return bool 
  	*	true om det finns kakor som är giltiga annars false
 	*/
-	private function getAndVerifyUserByCookies(){ 
+	private function userIsLoggedInWithCookies(){ 
 		if($this->cookieHandler->cookiesAreSet()){
 
 			$userName = $this->cookieHandler->loadUserNameCookie();

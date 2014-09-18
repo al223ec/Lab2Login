@@ -4,7 +4,7 @@ namespace view;
 
 class LoginCookieHandler {
 	/**Hanterar endast kakor för LoginView
-	 * Uppdaterar kakorna när intervallet har passerat detta för att starta tiden till AutoLogout till sista aktivitet från användaren
+	 * Uppdaterar kakorna när intervallet har passerat, detta för att starta tiden till AutoLogout till sista aktivitet från användaren
 	 */
 	
 	private $loginModel; 

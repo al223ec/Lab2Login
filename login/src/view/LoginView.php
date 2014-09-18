@@ -12,14 +12,13 @@ class LoginView {
 
  	private $errorMessages;
 	//erromessage nycklar
-	const PasswordError = "PasswordError"; 
-	const UserNameError = "UserNameError"; 
+	const PasswordErrorKey = "PasswordError"; 
+	const UserNameErrorKey = "UserNameError"; 
 
 	//Actions
 	const Action = "a"; 
 	const ActionLoggingIn = "login"; 
 	const ActionLoggingOut = "logout";
-	const LoggedIn = "loggedIn"; 
 
 	private $loginModel; 
 
@@ -29,17 +28,12 @@ class LoginView {
 	}
 
 	public function getCurrentAction(){
-		$action = isset($_GET[self::Action]) ? $_GET[self::Action] : "";
-		if($this->userIsLoggedIn() && $action === ""){
-			 $action = self::LoggedIn; 
-		}
-		return $action; 
+		return isset($_GET[self::Action]) ? $_GET[self::Action] : "";
 	}
 
-	private function userIsLoggedIn(){
+	public function userIsLoggedIn(){
 		return $this->loginModel->ceckSessionAndLoadUserFromSession($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]);  
 	}
-
 
 	public function renderLoginForm($prompt = ""){
  		return 
@@ -50,11 +44,11 @@ class LoginView {
 					". $prompt."
 					<label for='UserNameID' >Användarnamn :</label>
 					<input type='text' size='20' name='" . self::UserName ."' id='UserNameID' value='' />" 
-					. $this->getErrorMessages(self::UserNameError) .
+					. $this->getErrorMessages(self::UserNameErrorKey) .
 
 					"<label for='PasswordID' >Lösenord  :</label>
 					<input type='password' size='20' name='" . self::Password ."' id='PasswordID' value='' />" 
-					. $this->getErrorMessages(self::PasswordError) . 
+					. $this->getErrorMessages(self::PasswordErrorKey) . 
 
 					"<label for='AutologinID' >Håll mig inloggad  :</label>
 					<input type='checkbox' name='" . self::AutoLogin ."' id='AutologinID' />
@@ -74,10 +68,17 @@ class LoginView {
 		$this->loginModel->saveSession($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"], $this->getIsAutologinSet()); 
 	}
 
+	public function populateErrorMessages($user){
+		if($user === null){ 
+			$this->errorMessages[self::UserNameErrorKey] = "Felaktigt användarnamn"; 	
+		} else if(!$user->isValid()){
+			$this->errorMessages[self::PasswordErrorKey] = "Felaktigt lösenord"; 
+		}
+
+	}
 	public function redirect(){
 		header("Location: " . $_SERVER["PHP_SELF"]); 
 	}
-
 
 	public function logout($displayMessage){
 		if($displayMessage){
@@ -97,7 +98,7 @@ class LoginView {
 	public function getUserName(){
 		$ret = $this->getCleanInput(self::UserName);
 		if($ret === ""){
-			$this->errorMessages[self::UserNameError] = "Användarnamnet saknas";
+			$this->errorMessages[self::UserNameErrorKey] = "Användarnamnet saknas";
 		} 
 		return $ret; 
 	}
@@ -105,7 +106,7 @@ class LoginView {
 	public function getPassword(){
 		$ret = $this->getCleanInput(self::Password);
 		if($ret === ""){
-			$this->errorMessages[self::PasswordError] = "Lösenordet saknas";
+			$this->errorMessages[self::PasswordErrorKey] = "Lösenordet saknas";
 		}
 		return $ret; 
 	}
@@ -122,15 +123,16 @@ class LoginView {
 	private function getCleanInput($inputName) {
 		return isset($_POST[$inputName]) ? $this->sanitize($_POST[$inputName]) : "";
 	}
-
-	public function addErrorMessage($key, $errorMessage){
+	/* Fuktion för att lägga till errormessages utanför klassen
+	*
+	private function addErrorMessage($key, $errorMessage){
 		if($key === self::PasswordError || $key === self::UserNameError){
 			$this->errorMessages[$key] = $errorMessage; 
 		} else { 
 			throw new \Exception("LoginView::addErrorMessage fel nyckel skickad till funktionen!!");
 		}
 	}
- 
+ 	*/
     /**
     * @param String input
     * @return String input - tags - trim
