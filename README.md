@@ -11,3 +11,5 @@ Studenten skall efter avslutat laboration…
 …läst och implementerat en massa krav med hjälp utav PHP
 …skapat en applikation med funktionalitet som liknar exempelapplikationen
 …testat krav med testfall
+
+
