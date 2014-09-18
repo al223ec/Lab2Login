@@ -3,6 +3,7 @@
 namespace view; 
 
 require_once(ROOT_DIR . "/src/view/LoginCookieHandler.php"); 
+require_once(ROOT_DIR . "/myExtensions/MyDate.php");
 
 class LoginView {
 
@@ -92,7 +93,9 @@ class LoginView {
 	}
 
 	private function getFormFooter(){
-		return "<p> ". strftime("%A") . " Den " .  strftime("%d %B") . " " . " år " . strftime("%Y") .  ". Klockan är [" . strftime("%H:%M:%S") ."]</p>"; 
+
+		return "<p> ". \myExtensions\MyDate::getDayName() . " den " .  strftime("%d") . " "
+		. \myExtensions\MyDate::getMonthName() . " år " . strftime("%Y") .  ". Klockan är [" . strftime("%H:%M:%S") ."]</p>"; 
 	}
 
 	public function getUserName(){
