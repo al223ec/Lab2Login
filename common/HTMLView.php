@@ -25,10 +25,15 @@ class HTMLView {
 		<!DOCTYPE html>
 		<html>
 		<head>" .$this->getMetaTags(). "
+
+		    <link rel='stylesheet' type='text/css' href='css/reset.css' media='all'>
+    		<link rel='stylesheet' type='text/css' href='css/style.css' media='all'>
 		<title> $this->pageTitel </title>
 		</head>
 		<body>
-			$body
+			<div class='wrapper'>
+				$body
+			</div>
 		</body>
 		</html>"; 
 	}
