@@ -7,7 +7,7 @@ class LoginCookieHandler {
 	 * Uppdaterar kakorna när intervallet har passerat, detta för att starta tiden till AutoLogout till sista aktivitet från användaren
 	 */
 	
-	private $loginModel; 
+	private $loginModel;
 	private $secondsToExperation = 1800; //Default 300 min
 	//Updateringsinterval sekunder
 	private $updateCookieInterval = 180;  
@@ -67,10 +67,11 @@ class LoginCookieHandler {
 
 	//Läs cookie funktioner
 	/**
-	* Kontroller om cookien expires
+	* Kontroller om cookies tid är på väg att gå ur
+	*
 	 * @param $sekunder = Antal sekunder default updateCookieInterval
 	 */ 
-	public function cookieExpiries($seconds = 0){
+	public function updateCookiesExpiry($seconds = 0){
 		if($seconds === 0){
 			$seconds = $this->updateCookieInterval;
 		}
@@ -79,8 +80,6 @@ class LoginCookieHandler {
 		$expiry = $this->loadExpiry();
 
 		if(!is_numeric($expiry)){ //Något är fel, det finns ingen cookie eller så har den blivit manipulerad
-			$this->removeCookies(); //Ta bort ev kakor
-			$this->loginModel->logout(); //kill the session!! 
 			return false; 
 		}
 
@@ -88,7 +87,18 @@ class LoginCookieHandler {
 			return true; 	
 		}
 		return false; 
-	}	
+	}
+
+	public function isCookiesValid(){
+		if($this->cookiesAreSet()){
+			$userName = $this->loadUserNameCookie();
+			$expiry = $this->loadExpiry();
+			
+			$user = $this->loginModel->getUserFromDBWithCookie($userName, $this->loadPasswordCookie(), $expiry); 
+			return $user !== null && $expiry !== null && $user->isValid(); 
+		}
+		return false; 
+	}
 	/** 
 	* Hämtar vilken sekund som kakorna expires kontrollerar även att de skapdes samma sekund
 	 * @return null eller antalet sekunder

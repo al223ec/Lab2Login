@@ -28,15 +28,19 @@ class LoginController {
 			case \view\LoginView::ActionLoggingOut :
 				return $this->logout();
 			default : 
-				if($this->userIsLoggedInWithCookies() || $this->loginView->userIsLoggedIn()){
+				//Kontrollera först om användaren redan är inloggad 
+				if($this->loginView->userIsLoggedIn()){
 					return $this->userIsLoggedIn(); 
+				} else if($this->cookieHandler->cookiesAreSet()){ // annars kontroller cookies 
+					return $this->userIsLoggedInWithCookies(); 
 				}
+				//Slutligen returnera ett vanligt loginform
 				return $this->renderLoginForm();
 		}
 	}
 
 	private function userIsLoggedIn(){
-		if($this->cookieHandler->cookiesAreSet() && $this->cookieHandler->cookieExpiries()){
+		if($this->cookieHandler->cookiesAreSet() && $this->cookieHandler->updateCookiesExpiry() && $this->cookieHandler->isCookiesValid()){
 			$this->cookieHandler->saveCookies(); 
 		}
 		return $this->loginView->loggedInView(); 
@@ -56,9 +60,9 @@ class LoginController {
 					if($this->loginView->getIsAutologinSet()){
 						$this->cookieHandler->saveCookies(); 
 					}
-					$this->loginView->loginUser();
-					$this->loginView->redirect(); 
-					return "Logging in!";
+					$this->loginView->loginUser("Inloggningen lyckades!");
+					//$this->loginView->redirect(); 
+					return $this->userIsLoggedIn(); //"Logging in!";
 				}
 			}
 			$this->loginView->populateErrorMessages($user);
@@ -66,9 +70,10 @@ class LoginController {
 		return $this->renderLoginForm();  
 	} 
 
-	private function logout(){
+	private function logout($prompt = ""){
 		$this->cookieHandler->removeCookies(); 
-		return $this->loginView->logout();
+		$this->loginView->logout($prompt);
+		return $this->renderLoginForm(); 
 	}
 
 	private function renderLoginForm(){
@@ -76,27 +81,13 @@ class LoginController {
 	}
 
  	/** 
- 	*  Om det finns kakor hämtas dessa och valideras mot databasen
- 	*	@return bool 
- 	*	true om det finns kakor som är giltiga annars false
+ 	*  Det finns kakor hämta dessa och validera mot databasen, görs i cookieHandler
 	*/
-	private function userIsLoggedInWithCookies(){ 
-		if($this->cookieHandler->cookiesAreSet()){
-
-			$userName = $this->cookieHandler->loadUserNameCookie();
-			$expiry = $this->cookieHandler->loadExpiry();
-			
-			$user = $this->loginModel->getUserFromDBWithCookie($userName, $this->cookieHandler->loadPasswordCookie(), $expiry); 
-			if($user !== null && $expiry !== null && $user->isValid()){
-				$this->loginView->loginUser($user);
-				return true; 
-			}else{
-				//Något är fel på cookien dvs cookien måste ha blivit manipulerad
-				$this->logout(); //Logga ut
-				echo "Plz don't manipulate any cookie!"; 
-				die(); 
-			}
+	private function userIsLoggedInWithCookies(){
+		if($this->cookieHandler->isCookiesValid()){
+			$this->loginView->loginUser("Inloggning lyckades via cookies!");
+			return $this->userIsLoggedIn(); 
 		} 
-		return false;
+		return $this->logout("Du har manipulerat kakor din tomte!"); 
 	}
 }

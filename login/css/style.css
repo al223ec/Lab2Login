@@ -3,3 +3,7 @@
    margin:0 auto;
    text-align:left;
 }
+.errormessage{
+	font-size: 10px; 
+	color: red; 
+}

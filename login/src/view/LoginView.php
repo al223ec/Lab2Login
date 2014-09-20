@@ -22,6 +22,7 @@ class LoginView {
 	const ActionLoggingOut = "logout";
 
 	private $loginModel; 
+	private $prompt = ""; 
 
 	public function __construct(\model\Login $loginModel) {
 		$this->loginModel = $loginModel; 
@@ -36,22 +37,23 @@ class LoginView {
 		return $this->loginModel->ceckSessionAndLoadUserFromSession($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]);  
 	}
 
-	public function renderLoginForm($prompt = ""){
+	public function renderLoginForm(){
+		$prompt = $this->prompt; 
  		return 
  			$this->getFormHeader("Ej Inloggad") . "		  	
 			<form action='?". self::Action ."=". self::ActionLoggingIn ."' method='post' enctype='multipart/form-data'>
 				<fieldset>
 					<legend>Login - Skriv in användarnamn och lösenord</legend>
-					". $prompt."
+					<p>". $prompt."</p>
 					<label for='UserNameID' >Användarnamn :</label>
-					<input type='text' size='20' name='" . self::UserName ."' id='UserNameID' value='' />" 
-					. $this->getErrorMessages(self::UserNameErrorKey) .
+					<input type='text' size='20' name='" . self::UserName ."' id='UserNameID' value='". $this->getUserName() . "' />
+					<span class='errormessage'>" . $this->getErrorMessages(self::UserNameErrorKey) ."</span>
 
-					"<label for='PasswordID' >Lösenord  :</label>
-					<input type='password' size='20' name='" . self::Password ."' id='PasswordID' value='' />" 
-					. $this->getErrorMessages(self::PasswordErrorKey) . 
-
-					"<label for='AutologinID' >Håll mig inloggad  :</label>
+					<label for='PasswordID' >Lösenord  :</label>
+					<input type='password' size='20' name='" . self::Password ."' id='PasswordID' value='' />
+					<span class='errormessage'>" . $this->getErrorMessages(self::PasswordErrorKey) . "</span>
+					
+					<label for='AutologinID' >Håll mig inloggad  :</label>
 					<input type='checkbox' name='" . self::AutoLogin ."' id='AutologinID' />
 					<input type='submit' name=''  value='Logga in' />
 				</fieldset>
@@ -61,11 +63,17 @@ class LoginView {
 
 	public function loggedInView(){
 		$userName = $this->loginModel->getUserName();
-		$rememberMeIsSet = $this->loginModel->isRememberUserSet() ? " Vi kommer ihåg dig till nästa gång" : "";
-		return $this->getFormHeader("$userName är inloggad $rememberMeIsSet") . "<a href='?" . self::Action ."=". self::ActionLoggingOut ."'>Logga ut</a>" . $this->getFormFooter();
+		$rememberMeIsSetMessage = $this->loginModel->isRememberUserSet() ? " Vi kommer ihåg dig till nästa gång" : "";
+		$message = "<p>" . $this->prompt   . $rememberMeIsSetMessage . "</p>"; 
+
+		return $this->getFormHeader("$userName är inloggad") 
+			. $message . 
+			"<a href='?" . self::Action ."=". self::ActionLoggingOut ."'>Logga ut</a>" 
+			. $this->getFormFooter();
 	}
 
-	public function loginUser(){
+	public function loginUser($prompt = ""){
+		$this->prompt = $prompt; 
 		$this->loginModel->saveSession($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"], $this->getIsAutologinSet()); 
 	}
 
@@ -81,22 +89,21 @@ class LoginView {
 		header("Location: " . $_SERVER["PHP_SELF"]); 
 	}
 
-	public function logout(){
+	public function logout($prompt = ""){
+		$this->prompt = $prompt; 
 		//LoginModel logout returnerar true om det finns en användare att logga ut
 		//Detta för att kunna visa meddelande endast när det är relevant
 		$displayMessage = $this->loginModel->logout($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]); 
 		if($displayMessage){
-  			return $this->renderLoginForm("<p>Du har nu loggat ut!</p>"); 
-		}
-  		return $this->renderLoginForm(); 
-	}	
+			$this->prompt =  "Du har nu loggat ut!"; 
+  		}
+  	}	
 
-	private function getFormHeader($prompt){
- 		return "<h1>Laboration 2 al223ec</h1><h2>$prompt</h2>"; 		
+	private function getFormHeader($header){
+ 		return "<h1>Laboration 2 al223ec</h1><h2>$header</h2>"; 		
 	}
 
 	private function getFormFooter(){
-
 		return "<p> ". \myExtensions\MyDate::getDayName() . " den " .  strftime("%d") . " "
 		. \myExtensions\MyDate::getMonthName() . " år " . strftime("%Y") .  ". Klockan är [" . strftime("%H:%M:%S") ."]</p>"; 
 	}
