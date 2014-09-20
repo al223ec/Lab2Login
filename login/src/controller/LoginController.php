@@ -93,7 +93,7 @@ class LoginController {
 			}else{
 				//Något är fel på cookien dvs cookien måste ha blivit manipulerad
 				$this->logout(); //Logga ut
-				echo "Plz don\"t manipulate any cookie!"; 
+				echo "Plz don't manipulate any cookie!"; 
 				die(); 
 			}
 		} 

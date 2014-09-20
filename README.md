@@ -1,8 +1,9 @@
 1DV408 - Laboration 2. Login del 1.
 Lab2Login
 =========
-Mål
+Anton Ledström
 
+Mål
 Laboration 2 syftar till att låta dig arbeta med “riktiga” vertyg, krav, tester och webbhotell.
 
 Studenten skall efter avslutat laboration…
