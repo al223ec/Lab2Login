@@ -5,7 +5,7 @@
 	require_once(ROOT_DIR . "/src/model/User.php"); 
 
 	class UserDAL {
-/* local /*/
+		/* local /*/
 		const DB_CONNECTION = "127.0.0.1"; 
 		const DB_PASSWORD = ""; 
 		const DB_USERNAME = "dbUser"; 
@@ -49,10 +49,8 @@
     	public function saveNewUser($userName, $password){
     		$userName = $this->sanitize($userName); 
     		$password = $this->sanitize($password);
-
 			// A higher "cost" is more secure but consumes more processing power
 			$cost = 10;
-
 			// Create a random salt
 			$salt = strtr(base64_encode(mcrypt_create_iv(16, MCRYPT_DEV_URANDOM)), '+', '.');
 
@@ -62,7 +60,7 @@
 
 			// Hash the password with the salt
 			$hash = crypt($password, $salt);
-		
+			
 			/* check connection */
 			if (mysqli_connect_errno()) {
 			    printf("Connect failed: %s\n", mysqli_connect_error());

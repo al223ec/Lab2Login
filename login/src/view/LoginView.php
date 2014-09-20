@@ -81,7 +81,10 @@ class LoginView {
 		header("Location: " . $_SERVER["PHP_SELF"]); 
 	}
 
-	public function logout($displayMessage){
+	public function logout(){
+		//LoginModel logout returnerar true om det finns en användare att logga ut
+		//Detta för att kunna visa meddelande endast när det är relevant
+		$displayMessage = $this->loginModel->logout($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]); 
 		if($displayMessage){
   			return $this->renderLoginForm("<p>Du har nu loggat ut!</p>"); 
 		}

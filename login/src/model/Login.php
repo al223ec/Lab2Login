@@ -54,11 +54,11 @@ class Login {
 		return $this->currentUser !== null; 
 	}
 
-	public function logout(){
-		if($this->currentUser !== null){
-			$this->userDAL->saveCookieValue($this->currentUser->getUserID(), null);
+	public function logout($clientIp, $clientBrowserAgent){
+		$currentUser = $this->loginSessionHandler->getUserFromSession($clientIp, $clientBrowserAgent); 
+		if($currentUser !== null){
+			$this->userDAL->saveCookieValue($currentUser->getUserID(), null, 0);
 		}
-		$this->currentUser = null; 
 		return $this->loginSessionHandler->removeSession(); 
 	}
 	/**

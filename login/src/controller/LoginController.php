@@ -68,9 +68,7 @@ class LoginController {
 
 	private function logout(){
 		$this->cookieHandler->removeCookies(); 
-		//LoginModel logout returnerar true om det finns en användare att logga ut
-		//Datta för att kunna visa meddelande endast när det är relevant
-		return $this->loginView->logout($this->loginModel->logout());
+		return $this->loginView->logout();
 	}
 
 	private function renderLoginForm(){
