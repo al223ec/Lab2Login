@@ -92,8 +92,7 @@ class LoginController {
 				return true; 
 			}else{
 				//Något är fel på cookien dvs cookien måste ha blivit manipulerad
-				$this->cookieHandler->removeCookies(); //Ta bort ev kakor
-				$this->loginModel->logout();
+				$this->logout(); //Logga ut
 				echo "Plz don\"t manipulate any cookie!"; 
 				die(); 
 			}
