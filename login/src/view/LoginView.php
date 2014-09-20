@@ -46,7 +46,7 @@ class LoginView {
 					<legend>Login - Skriv in användarnamn och lösenord</legend>
 					<p>". $prompt."</p>
 					<label for='UserNameID' >Användarnamn :</label>
-					<input type='text' size='20' name='" . self::UserName ."' id='UserNameID' value='". $this->getUserName() . "' />
+					<input type='text' size='20' name='" . self::UserName ."' id='UserNameID' value='". $this->getCleanInput(self::UserName) . "' />
 					<span class='errormessage'>" . $this->getErrorMessages(self::UserNameErrorKey) ."</span>
 
 					<label for='PasswordID' >Lösenord  :</label>
