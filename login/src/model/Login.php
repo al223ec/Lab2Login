@@ -19,7 +19,12 @@ class Login {
 	public function saveSession($clientIp, $clientBrowserAgent, $rememberUser){
 		$this->loginSessionHandler->saveSession($this->currentUser, $clientIp, $clientBrowserAgent, $rememberUser); 
 	}
-
+	public function setReadOnceMessage($message){
+		$this->loginSessionHandler->setReadOnceMessage($message); 
+	}
+	public function getReadOnceMessage(){
+		return $this->loginSessionHandler->getReadOnceMessage(); 
+	}
 	/**
 	* @return Null eller ett user object 
 	*/

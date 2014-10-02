@@ -6,11 +6,11 @@
 
 	class UserDAL {
 		/* local /*/
-		const DB_CONNECTION = "127.0.0.1"; 
-		const DB_PASSWORD = ""; 
-		const DB_USERNAME = "root"; 
-		const DB_NAME = "lab2logindb"; 
-		const TBL_NAME = "users"; 
+		const DB_CONNECTION = "antonledstrom.se.mysql"; 
+		const DB_PASSWORD = "al223ec@one.com.mysql"; 
+		const DB_USERNAME = "antonledstrom_s"; 
+		const DB_NAME = "antonledstrom_s"; 
+		const TBL_NAME = "lab2users"; 
 
 		private $mysqli;
 

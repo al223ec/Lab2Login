@@ -26,7 +26,7 @@ SET time_zone = "+00:00";
 -- Tabellstruktur `users`
 --
 
-CREATE TABLE IF NOT EXISTS `users` (
+CREATE TABLE IF NOT EXISTS `lab2users` (
   `UserName` varchar(45) NOT NULL,
   `UserID` int(11) NOT NULL AUTO_INCREMENT,
   `Hash` varchar(200) NOT NULL,

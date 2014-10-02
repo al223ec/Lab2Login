@@ -27,6 +27,7 @@ class LoginView {
 	public function __construct(\model\Login $loginModel) {
 		$this->loginModel = $loginModel; 
 		$this->errorMessages = array(); 
+		$this->prompt = $loginModel->getReadOnceMessage(); 
 	}
 
 	public function getCurrentAction(){
@@ -36,6 +37,25 @@ class LoginView {
 	public function userIsLoggedIn(){
 		return $this->loginModel->ceckSessionAndLoadUserFromSession($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]);  
 	}
+
+	public function setLoginMessage(){
+		$this->loginModel->setReadOnceMessage("Inloggningen lyckades!"); 
+	}
+
+	public function setLoginWithCookieMessage(){
+		$this->loginModel->setReadOnceMessage("Inloggningen lyckades! Och vi kommer ihåg dig till nästa gång"); 
+	}
+
+	public function setLogoutMessage(){
+		$this->loginModel->setReadOnceMessage("Du har loggat ut!"); 
+	}
+	public function setLoginWithCookieSuccededMessage(){
+		$this->loginModel->setReadOnceMessage("Inloggningen lyckades med cookies!");
+	}
+	public function setFaultyCookiesLogoutMessage(){
+		$this->loginModel->setReadOnceMessage("Felaktiga cookies!");
+	}
+	
 
 	public function renderLoginForm(){
 		$prompt = $this->prompt; 
@@ -63,8 +83,7 @@ class LoginView {
 
 	public function loggedInView(){
 		$userName = $this->loginModel->getUserName();
-		$rememberMeIsSetMessage = $this->loginModel->isRememberUserSet() ? " Vi kommer ihåg dig till nästa gång" : "";
-		$message = "<p>" . $this->prompt   . $rememberMeIsSetMessage . "</p>"; 
+		$message = "<p>" . $this->prompt   . "</p>"; 
 
 		return $this->getFormHeader("$userName är inloggad") 
 			. $message . 
@@ -72,8 +91,7 @@ class LoginView {
 			. $this->getFormFooter();
 	}
 
-	public function loginUser($prompt = ""){
-		$this->prompt = $prompt; 
+	public function loginUser(){ 
 		$this->loginModel->saveSession($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"], $this->getIsAutologinSet()); 
 	}
 
@@ -89,14 +107,10 @@ class LoginView {
 		header("Location: " . $_SERVER["PHP_SELF"]); 
 	}
 
-	public function logout($prompt = ""){
-		$this->prompt = $prompt; 
+	public function logout(){
 		//LoginModel logout returnerar true om det finns en användare att logga ut
 		//Detta för att kunna visa meddelande endast när det är relevant
 		$displayMessage = $this->loginModel->logout($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]); 
-		if($displayMessage){
-			$this->prompt =  "Du har nu loggat ut!"; 
-  		}
   	}	
 
 	private function getFormHeader($header){

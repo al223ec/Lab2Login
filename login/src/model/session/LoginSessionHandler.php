@@ -8,6 +8,7 @@ class LoginSessionHandler{
 	private static $clientIpIndex = "SESSION::CLIENTIP"; 
 	private static $clientBrowserAgentIndex = "SESSION::BROWSERAGENT";
 	private static $rememberUserIndex = "SESSION::REMEMBERUSER"; 
+	private static $readOnceMessage = "SESSION::READONCE"; 
 
 	public function __construct(){
 		if(!isset($_SESSION))
@@ -21,6 +22,15 @@ class LoginSessionHandler{
 		if($rememberUser){
 			$_SESSION[self::$rememberUserIndex] = $rememberUser; 
 		}
+	}
+
+	public function setReadOnceMessage($message){
+		$_SESSION[self::$readOnceMessage] = $message; 
+	}
+	public function getReadOnceMessage(){
+		$ret = isset($_SESSION[self::$readOnceMessage]) ? $_SESSION[self::$readOnceMessage] : ""; 
+		unset($_SESSION[self::$readOnceMessage]); 
+		return $ret;   
 	}
 
 	public function getUserFromSession($clientIp, $clientBrowserAgent){

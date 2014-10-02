@@ -59,10 +59,13 @@ class LoginController {
 					//korrekt usernamn och pass
 					if($this->loginView->getIsAutologinSet()){
 						$this->cookieHandler->saveCookies(); 
-					}
-					$this->loginView->loginUser("Inloggningen lyckades!");
-					//$this->loginView->redirect(); 
-					return $this->userIsLoggedIn(); //"Logging in!";
+						$this->loginView->setLoginWithCookieMessage();
+					} else{
+						$this->loginView->setLoginMessage();
+					} 
+					$this->loginView->loginUser();
+					$this->loginView->redirect(); 
+					return;
 				}
 			}
 			$this->loginView->populateErrorMessages($user);
@@ -70,10 +73,17 @@ class LoginController {
 		return $this->renderLoginForm();  
 	} 
 
-	private function logout($prompt = ""){
-		$this->cookieHandler->removeCookies(); 
-		$this->loginView->logout($prompt);
-		return $this->renderLoginForm(); 
+	private function logout($faultyCookies = false){
+		$this->cookieHandler->removeCookies();
+		if($faultyCookies){
+			$this->loginView->setFaultyCookiesLogoutMessage(); 
+		}else{
+			$this->loginView->setLogoutMessage(); 
+		}
+ 
+		$this->loginView->logout();
+		$this->loginView->redirect(); 
+		return;
 	}
 
 	private function renderLoginForm(){
@@ -85,9 +95,11 @@ class LoginController {
 	*/
 	private function userIsLoggedInWithCookies(){
 		if($this->cookieHandler->isCookiesValid()){
-			$this->loginView->loginUser("Inloggning lyckades via cookies!");
-			return $this->userIsLoggedIn(); 
+			$this->loginView->loginUser();
+			$this->loginView->setLoginWithCookieSuccededMessage();
+			$this->loginView->redirect(); 
+			return;
 		} 
-		return $this->logout("Du har manipulerat kakor din tomte!"); 
+		return $this->logout(true); 
 	}
 }
